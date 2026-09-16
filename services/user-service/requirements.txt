@@ -1,0 +1,41 @@
+# User Service Dependencies
+# Python 3.11+
+
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# Database (async SQLAlchemy + asyncpg driver)
+sqlalchemy[asyncio]==2.0.30
+asyncpg==0.29.0
+alembic==1.13.1
+
+# Pydantic v2 for request/response validation
+pydantic==2.7.1
+pydantic-settings==2.2.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Redis (async client for rate limiting + caching)
+redis[asyncio]==5.0.4
+
+# HTTP client (for health check of dependencies)
+httpx==0.27.0
+
+# Email validation
+email-validator==2.1.1
+
+# Prometheus metrics
+prometheus-fastapi-instrumentator==7.0.0
+
+# Testing
+pytest==8.2.0
+pytest-asyncio==0.23.7
+pytest-cov==5.0.0
+httpx==0.27.0         # used as async test client too
+factory-boy==3.3.0
+
+# Code quality
+ruff==0.4.4

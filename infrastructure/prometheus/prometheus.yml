@@ -1,0 +1,42 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:8000']
+    metrics_path: /metrics
+
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:8001']
+    metrics_path: /metrics
+
+  - job_name: 'assignment-service'
+    static_configs:
+      - targets: ['assignment-service:8002']
+    metrics_path: /metrics
+
+  - job_name: 'ai-search-service'
+    static_configs:
+      - targets: ['ai-search-service:8003']
+    metrics_path: /metrics
+
+  - job_name: 'course-service'
+    static_configs:
+      - targets: ['course-service:8080']
+    metrics_path: /actuator/prometheus
+
+  - job_name: 'result-service'
+    static_configs:
+      - targets: ['result-service:8081']
+    metrics_path: /actuator/prometheus
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']

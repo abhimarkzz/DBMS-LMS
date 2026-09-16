@@ -1,0 +1,328 @@
+version: '3.9'
+
+# =============================================================================
+# AI-Powered Distributed LMS — Docker Compose
+# =============================================================================
+# Usage:
+#   docker compose up -d                  — Start all services
+#   docker compose up -d postgres mongodb redis  — Start only databases
+#   docker compose logs -f user-service   — Follow logs for a service
+#   docker compose down -v                — Stop and remove volumes
+#
+# Service ports (host:container):
+#   api-gateway:          8000:8000
+#   user-service:         8001:8001
+#   course-service:       8080:8080
+#   assignment-service:   8002:8002
+#   result-service:       8081:8081
+#   notification-service: 3000:3000
+#   ai-search-service:    8003:8003
+#   postgres:             5432:5432
+#   mongodb:              27017:27017
+#   redis:                6379:6379
+#   prometheus:           9090:9090
+#   grafana:              3001:3000
+# =============================================================================
+
+networks:
+  lms-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  uploads_data:
+
+# -----------------------------------------------------------------------
+# DATABASES
+# -----------------------------------------------------------------------
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: lms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-lms_db}
+      POSTGRES_USER: ${POSTGRES_USER:-lms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Run initialization script on first start
+      - ./database/postgres/migrations:/docker-entrypoint-initdb.d/migrations:ro
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lms_user} -d ${POSTGRES_DB:-lms_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  mongodb:
+    image: mongo:7.0
+    container_name: lms-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-mongo_user}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-change_me_in_production}
+      MONGO_INITDB_DATABASE: ${MONGODB_DB:-lms_notifications}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: lms-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 100
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# -----------------------------------------------------------------------
+# APPLICATION SERVICES
+# -----------------------------------------------------------------------
+
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: lms-user-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-lms_user}:${POSTGRES_PASSWORD:-change_me_in_production}@postgres:5432/${POSTGRES_DB:-lms_db}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      APP_ENV: ${APP_ENV:-development}
+    ports:
+      - "8001:8001"
+    networks:
+      - lms-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  course-service:
+    build:
+      context: ./services/course-service
+      dockerfile: Dockerfile
+    container_name: lms-course-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-lms_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-lms_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "8080:8080"
+    networks:
+      - lms-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  assignment-service:
+    build:
+      context: ./services/assignment-service
+      dockerfile: Dockerfile
+    container_name: lms-assignment-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-lms_user}:${POSTGRES_PASSWORD:-change_me_in_production}@postgres:5432/${POSTGRES_DB:-lms_db}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      NOTIFICATION_SERVICE_URL: http://notification-service:3000
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "8002:8002"
+    networks:
+      - lms-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  result-service:
+    build:
+      context: ./services/result-service
+      dockerfile: Dockerfile
+    container_name: lms-result-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-lms_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-lms_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+      JWT_SECRET: ${JWT_SECRET}
+      NOTIFICATION_SERVICE_URL: http://notification-service:3000
+    ports:
+      - "8081:8081"
+    networks:
+      - lms-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: lms-notification-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME:-mongo_user}:${MONGO_INITDB_ROOT_PASSWORD:-change_me_in_production}@mongodb:27017/${MONGODB_DB:-lms_notifications}?authSource=admin
+      MONGODB_DB: ${MONGODB_DB:-lms_notifications}
+      REDIS_URL: redis://redis:6379/1
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "3000:3000"
+    networks:
+      - lms-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  ai-search-service:
+    build:
+      context: ./services/ai-search-service
+      dockerfile: Dockerfile
+    container_name: lms-ai-search-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-lms_user}:${POSTGRES_PASSWORD:-change_me_in_production}@postgres:5432/${POSTGRES_DB:-lms_db}
+      REDIS_URL: redis://redis:6379/2
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-sentence_transformers}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
+      EMBEDDING_DIMENSION: ${EMBEDDING_DIMENSION:-384}
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
+      LOCAL_UPLOAD_DIR: /app/uploads
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "8003:8003"
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - lms-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: lms-api-gateway
+    restart: unless-stopped
+    environment:
+      USER_SERVICE_URL: http://user-service:8001
+      COURSE_SERVICE_URL: http://course-service:8080
+      ASSIGNMENT_SERVICE_URL: http://assignment-service:8002
+      RESULT_SERVICE_URL: http://result-service:8081
+      NOTIFICATION_SERVICE_URL: http://notification-service:3000
+      AI_SEARCH_SERVICE_URL: http://ai-search-service:8003
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      REDIS_URL: redis://redis:6379/3
+      RATE_LIMIT_LOGIN: ${RATE_LIMIT_LOGIN:-10}
+      RATE_LIMIT_REGISTER: ${RATE_LIMIT_REGISTER:-5}
+      RATE_LIMIT_AI_SEARCH: ${RATE_LIMIT_AI_SEARCH:-20}
+      RATE_LIMIT_GENERAL: ${RATE_LIMIT_GENERAL:-100}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      APP_ENV: ${APP_ENV:-development}
+    ports:
+      - "8000:8000"
+    networks:
+      - lms-network
+    depends_on:
+      - user-service
+      - course-service
+      - assignment-service
+      - result-service
+      - notification-service
+      - ai-search-service
+
+# -----------------------------------------------------------------------
+# MONITORING (optional — comment out to save resources during development)
+# -----------------------------------------------------------------------
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: lms-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - lms-network
+
+  grafana:
+    image: grafana/grafana:10.3.3
+    container_name: lms-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    networks:
+      - lms-network
+    depends_on:
+      - prometheus
