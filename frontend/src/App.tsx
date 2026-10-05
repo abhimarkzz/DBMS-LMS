@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   BookOpen, GraduationCap, CheckCircle2, Search, Bell,
   Activity, Award, FileText, LogOut, PlusCircle,
-  Database, Server, RefreshCw, BarChart2
+  Database, Server, RefreshCw, BarChart2, AlertCircle, Clock
 } from 'lucide-react';
 import { api, getStoredUser, setStoredUser, setAuthToken, removeAuthToken, removeStoredUser } from './api';
 
@@ -321,19 +321,19 @@ export default function App() {
   // If not logged in, render university login portal
   if (!currentUser) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f5f9', padding: '20px' }}>
-        <div style={{ width: '100%', maxWidth: '440px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-          <div style={{ backgroundColor: '#1e3a8a', padding: '24px 28px', color: 'white', display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ width: '42px', height: '42px', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <GraduationCap size={26} color="white" />
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc', padding: '20px' }}>
+        <div style={{ width: '100%', maxWidth: '420px', backgroundColor: 'white', borderRadius: '4px', border: '1px solid #cbd5e1', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: '#1e3a8a', padding: '20px 24px', color: 'white', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '38px', height: '38px', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <GraduationCap size={22} color="white" />
             </div>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'white' }}>Metropolitan University</h2>
-              <p style={{ fontSize: '13px', opacity: 0.85 }}>Learning Management & Academic Gateway</p>
+              <h2 style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>Metropolitan University</h2>
+              <p style={{ fontSize: '12px', opacity: 0.85 }}>Learning Management & Academic Gateway</p>
             </div>
           </div>
 
-          <div style={{ padding: '28px' }}>
+          <div style={{ padding: '24px' }}>
             {flashMessage && (
               <div className={`banner-alert banner-alert-${flashMessage.type}`}>
                 {flashMessage.text}
@@ -341,20 +341,21 @@ export default function App() {
             )}
 
             {authError && (
-              <div className="banner-alert banner-alert-error">
-                {authError}
+              <div className="banner-alert banner-alert-error" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <span>{authError}</span>
               </div>
             )}
 
-            <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', marginBottom: '18px' }}>
               <button
                 type="button"
                 onClick={() => { setIsRegistering(false); setAuthError(''); }}
                 style={{
-                  flex: 1, padding: '10px', background: 'none', border: 'none',
+                  flex: 1, padding: '8px', background: 'none', border: 'none',
                   borderBottom: !isRegistering ? '2px solid #1e3a8a' : '2px solid transparent',
-                  fontWeight: !isRegistering ? '600' : '400', color: !isRegistering ? '#1e3a8a' : '#64748b',
-                  cursor: 'pointer'
+                  fontWeight: !isRegistering ? '600' : '500', color: !isRegistering ? '#1e3a8a' : '#64748b',
+                  fontSize: '13px', cursor: 'pointer'
                 }}
               >
                 Sign In
@@ -363,10 +364,10 @@ export default function App() {
                 type="button"
                 onClick={() => { setIsRegistering(true); setAuthError(''); }}
                 style={{
-                  flex: 1, padding: '10px', background: 'none', border: 'none',
+                  flex: 1, padding: '8px', background: 'none', border: 'none',
                   borderBottom: isRegistering ? '2px solid #1e3a8a' : '2px solid transparent',
-                  fontWeight: isRegistering ? '600' : '400', color: isRegistering ? '#1e3a8a' : '#64748b',
-                  cursor: 'pointer'
+                  fontWeight: isRegistering ? '600' : '500', color: isRegistering ? '#1e3a8a' : '#64748b',
+                  fontSize: '13px', cursor: 'pointer'
                 }}
               >
                 Register
@@ -388,15 +389,15 @@ export default function App() {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Role</label>
+                    <label className="form-label">Institutional Role</label>
                     <select
                       className="form-select"
                       value={role}
                       onChange={e => setRole(e.target.value)}
                     >
                       <option value="STUDENT">Student</option>
-                      <option value="TEACHER">Faculty / Teacher</option>
-                      <option value="ADMIN">System Administrator</option>
+                      <option value="TEACHER">Faculty / Instructor</option>
+                      <option value="ADMIN">Administrator</option>
                     </select>
                   </div>
                 </>
@@ -429,18 +430,18 @@ export default function App() {
               <button
                 type="submit"
                 className="btn btn-primary"
-                style={{ width: '100%', marginTop: '8px' }}
+                style={{ width: '100%', marginTop: '6px' }}
                 disabled={authLoading}
               >
                 {authLoading ? 'Authenticating...' : (isRegistering ? 'Create Academic Account' : 'Sign In')}
               </button>
             </form>
 
-            <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '1px solid #e2e8f0' }}>
-              <p style={{ fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '10px' }}>
+            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+              <p style={{ fontSize: '11.5px', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>
                 Instant Demo Credentials:
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 <button
                   type="button"
                   onClick={() => fillDemoCreds('alex@student.univ.edu', 'Password123!')}
@@ -476,28 +477,30 @@ export default function App() {
     );
   }
 
-  // Logged-in application layout
+  // Count pending submissions for faculty
+  const pendingSubmissionsCount = assignments.filter(a => !a.has_submitted).length;
+
   return (
     <div className="app-container">
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="university-crest">
-            <GraduationCap size={20} />
+            <GraduationCap size={18} />
           </div>
           <div className="university-info">
             <h1>Metropolitan Univ</h1>
-            <p>Academic Portal</p>
+            <p>{currentUser.role === 'STUDENT' ? 'Student Workspace' : currentUser.role === 'TEACHER' ? 'Faculty Portal' : 'Admin Console'}</p>
           </div>
         </div>
 
         <nav className="sidebar-nav">
-          <div className="nav-section-title">Navigation</div>
+          <div className="nav-section-title">Core Academic</div>
           <button
             className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
             onClick={() => setActiveTab('dashboard')}
           >
-            <BarChart2 size={18} />
+            <BarChart2 size={16} />
             <span>Dashboard</span>
           </button>
 
@@ -505,7 +508,7 @@ export default function App() {
             className={`nav-item ${activeTab === 'courses' ? 'active' : ''}`}
             onClick={() => setActiveTab('courses')}
           >
-            <BookOpen size={18} />
+            <BookOpen size={16} />
             <span>Courses</span>
           </button>
 
@@ -513,44 +516,47 @@ export default function App() {
             className={`nav-item ${activeTab === 'assignments' ? 'active' : ''}`}
             onClick={() => setActiveTab('assignments')}
           >
-            <FileText size={18} />
+            <FileText size={16} />
             <span>Assignments</span>
+            {currentUser.role === 'STUDENT' && pendingSubmissionsCount > 0 && (
+              <span className="nav-badge">{pendingSubmissionsCount}</span>
+            )}
           </button>
 
           <button
             className={`nav-item ${activeTab === 'results' ? 'active' : ''}`}
             onClick={() => setActiveTab('results')}
           >
-            <Award size={18} />
-            <span>Academic Results</span>
+            <Award size={16} />
+            <span>Results & Views</span>
           </button>
 
-          <div className="nav-section-title">Intelligent Tools</div>
+          <div className="nav-section-title">Academic Tools</div>
           <button
             className={`nav-item ${activeTab === 'ai-search' ? 'active' : ''}`}
             onClick={() => setActiveTab('ai-search')}
           >
-            <Search size={18} />
-            <span>AI Smart Search</span>
+            <Search size={16} />
+            <span>AI Notes Search</span>
           </button>
 
           <button
             className={`nav-item ${activeTab === 'notifications' ? 'active' : ''}`}
             onClick={() => setActiveTab('notifications')}
           >
-            <Bell size={18} />
+            <Bell size={16} />
             <span>Notifications</span>
             {notificationCount > 0 && <span className="nav-badge">{notificationCount}</span>}
           </button>
 
           {currentUser.role === 'ADMIN' && (
             <>
-              <div className="nav-section-title">Administration</div>
+              <div className="nav-section-title">Platform Governance</div>
               <button
                 className={`nav-item ${activeTab === 'admin' ? 'active' : ''}`}
                 onClick={() => setActiveTab('admin')}
               >
-                <Server size={18} />
+                <Server size={16} />
                 <span>System Health</span>
               </button>
             </>
@@ -571,27 +577,30 @@ export default function App() {
               title="Sign Out"
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
             >
-              <LogOut size={16} />
+              <LogOut size={15} />
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Main Workspace */}
+      {/* Main Content Area */}
       <div className="main-wrapper">
         <header className="topbar">
           <div className="topbar-title">
-            {activeTab === 'dashboard' && 'Academic Overview'}
+            {activeTab === 'dashboard' && 'Dashboard Overview'}
             {activeTab === 'courses' && 'Course Curriculum & Materials'}
-            {activeTab === 'assignments' && 'Assignment Management & Submissions'}
-            {activeTab === 'results' && 'Student Progress & Academic Views'}
-            {activeTab === 'ai-search' && 'AI Smart Notes Search (RAG + pgvector)'}
-            {activeTab === 'notifications' && 'Notifications & Announcements'}
-            {activeTab === 'admin' && 'Platform Administration & Polyglot Health'}
+            {activeTab === 'assignments' && 'Assignments & Assessment'}
+            {activeTab === 'results' && 'Academic Performance & Relational Views'}
+            {activeTab === 'ai-search' && 'AI Smart Notes Search (pgvector + Gemini)'}
+            {activeTab === 'notifications' && 'Institutional Alerts & Notices'}
+            {activeTab === 'admin' && 'System Health & User Directory'}
           </div>
-          <div className="topbar-actions">
-            <span className="badge badge-neutral">
-              {currentUser.role}: {currentUser.email}
+          <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="badge badge-info" style={{ fontSize: '11.5px', padding: '3px 8px' }}>
+              Academic Session 2026–2027
+            </span>
+            <span className="badge badge-neutral" style={{ fontSize: '11.5px', padding: '3px 8px' }}>
+              {currentUser.role} • {currentUser.email}
             </span>
           </div>
         </header>
@@ -603,154 +612,448 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 1: DASHBOARD */}
+          {/* ========================================================
+              TAB 1: ROLE-SPECIFIC DASHBOARDS
+             ======================================================== */}
           {activeTab === 'dashboard' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div className="grid-cols-4">
-                <div className="card stat-card">
-                  <span className="stat-label">Active Courses</span>
-                  <span className="stat-value">{courses.length}</span>
-                  <span className="stat-subtext">Published modules</span>
-                </div>
-                <div className="card stat-card">
-                  <span className="stat-label">Assignments</span>
-                  <span className="stat-value">{assignments.length}</span>
-                  <span className="stat-subtext">Active evaluation tasks</span>
-                </div>
-                <div className="card stat-card">
-                  <span className="stat-label">Vector Chunks</span>
-                  <span className="stat-value">10</span>
-                  <span className="stat-subtext">pgvector HNSW index</span>
-                </div>
-                <div className="card stat-card">
-                  <span className="stat-label">Unread Alerts</span>
-                  <span className="stat-value">{notificationCount}</span>
-                  <span className="stat-subtext">MongoDB document events</span>
-                </div>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
+              {/* 1A. STUDENT DASHBOARD (LEARNING-FOCUSED) */}
               {currentUser.role === 'STUDENT' && (
-                <div className="card">
-                  <h3 style={{ fontSize: '16px', marginBottom: '14px' }}>Academic Progress (PostgreSQL Relational View)</h3>
-                  <div className="table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Course Code</th>
-                          <th>Course Title</th>
-                          <th>Assignments Completed</th>
-                          <th>Completion Rate</th>
-                          <th>Total Score</th>
-                          <th>Published Grade</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {progressView.length === 0 ? (
-                          <tr><td colSpan={6} style={{ textAlign: 'center' }}>No enrolled course records found.</td></tr>
-                        ) : (
-                          progressView.map((p, idx) => (
-                            <tr key={idx}>
-                              <td><strong>{p.course_code}</strong></td>
-                              <td>{p.course_title}</td>
-                              <td>{p.submitted_assignments} / {p.total_assignments}</td>
-                              <td>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span>{p.completion_rate}%</span>
-                                  <div style={{ width: '80px', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
-                                    <div style={{ width: `${p.completion_rate}%`, height: '100%', backgroundColor: '#059669' }} />
-                                  </div>
-                                </div>
-                              </td>
-                              <td>{p.total_obtained_score} / {p.total_possible_score}</td>
-                              <td>
-                                <span className={`badge ${p.published_grade === 'A+' || p.published_grade === 'A' ? 'badge-success' : p.published_grade === 'F' ? 'badge-danger' : 'badge-info'}`}>
-                                  {p.published_grade || 'In Progress'}
-                                </span>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                <>
+                  <div className="role-banner">
+                    <div>
+                      <div className="role-banner-title">Welcome back, {currentUser.full_name}</div>
+                      <div className="role-banner-subtitle">
+                        Academic Term: Fall 2026 • Enrolled in {courses.filter(c => c.is_enrolled).length} modules
+                      </div>
+                    </div>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('courses')}>
+                      Browse Course Catalog
+                    </button>
                   </div>
-                </div>
-              )}
 
-              {currentUser.role !== 'STUDENT' && (
-                <div className="card">
-                  <h3 style={{ fontSize: '16px', marginBottom: '14px' }}>Course Performance Summary (PostgreSQL Aggregate View)</h3>
-                  <div className="table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Course</th>
-                          <th>Instructor</th>
-                          <th>Enrolled</th>
-                          <th>Assignments</th>
-                          <th>Graded Subs</th>
-                          <th>Average Score</th>
-                          <th>Leaderboard</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {courseSummaryView.map((c, idx) => (
-                          <tr key={idx}>
-                            <td><strong>{c.course_code}</strong> - {c.course_title}</td>
-                            <td>{c.instructor_name}</td>
-                            <td>{c.enrolled_students} students</td>
-                            <td>{c.total_assignments}</td>
-                            <td>{c.total_submissions_graded}</td>
-                            <td><strong>{c.average_assignment_score}</strong> / 100</td>
-                            <td>
+                  <div className="grid-cols-3">
+                    <div className="card stat-card">
+                      <span className="stat-label">Active Enrollments</span>
+                      <span className="stat-value">{courses.filter(c => c.is_enrolled).length}</span>
+                      <span className="stat-subtext">Registered academic courses</span>
+                    </div>
+                    <div className="card stat-card">
+                      <span className="stat-label">Assignments Due</span>
+                      <span className="stat-value">{assignments.filter(a => !a.has_submitted).length}</span>
+                      <span className="stat-subtext">Pending student submissions</span>
+                    </div>
+                    <div className="card stat-card">
+                      <span className="stat-label">Standing (View)</span>
+                      <span className="stat-value" style={{ color: '#15803d' }}>
+                        {progressView.length > 0 && progressView[0].published_grade ? progressView[0].published_grade : 'In Good Standing'}
+                      </span>
+                      <span className="stat-subtext">PostgreSQL student_progress_view</span>
+                    </div>
+                  </div>
+
+                  {/* My Courses Section */}
+                  <div className="card">
+                    <div className="card-header">
+                      <h3 className="card-title">My Courses & Materials</h3>
+                      <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('courses')}>
+                        View All
+                      </button>
+                    </div>
+                    {courses.filter(c => c.is_enrolled).length === 0 ? (
+                      <div className="empty-state">
+                        <div className="empty-state-icon">
+                          <BookOpen size={20} />
+                        </div>
+                        <div className="empty-state-title">No Enrolled Courses</div>
+                        <div className="empty-state-desc">
+                          You are not registered in any courses yet. Explore the curriculum catalog to enroll and access course materials.
+                        </div>
+                        <button className="btn btn-primary btn-sm" style={{ marginTop: '12px' }} onClick={() => setActiveTab('courses')}>
+                          Browse Catalog
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid-cols-2">
+                        {courses.filter(c => c.is_enrolled).map(c => (
+                          <div key={c.id} style={{ border: '1px solid #e2e8f0', padding: '14px', borderRadius: '4px', backgroundColor: '#fafbfc' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                              <span className="badge badge-info">{c.code}</span>
+                              <span style={{ fontSize: '12px', color: '#64748b' }}>Instructor: {c.teacher_name}</span>
+                            </div>
+                            <h4 style={{ fontSize: '14.5px', marginBottom: '6px' }}>{c.title}</h4>
+                            <p style={{ fontSize: '12.5px', color: '#475569', marginBottom: '12px' }}>{c.description}</p>
+                            <div style={{ display: 'flex', gap: '8px' }}>
                               <button
                                 className="btn btn-secondary btn-sm"
-                                onClick={() => handleViewLeaderboard(c.course_id, c.course_title)}
+                                onClick={async () => {
+                                  const det = await api.getCourseDetail(c.id);
+                                  setSelectedCourse(det);
+                                  setActiveTab('courses');
+                                }}
                               >
-                                View Ranks
+                                Lecture Notes
+                              </button>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => {
+                                  setSearchCourseId(c.id);
+                                  setActiveTab('ai-search');
+                                }}
+                              >
+                                Ask AI
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upcoming Assignments */}
+                  <div className="card">
+                    <div className="card-header">
+                      <h3 className="card-title">Pending Course Work</h3>
+                      <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('assignments')}>
+                        View Assignments
+                      </button>
+                    </div>
+                    <div className="table-container">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Course</th>
+                            <th>Assignment</th>
+                            <th>Max Marks</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {assignments.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                                No assignments found for your current enrollments.
+                              </td>
+                            </tr>
+                          ) : (
+                            assignments.slice(0, 4).map(a => (
+                              <tr key={a.id}>
+                                <td><strong>{a.course_code}</strong></td>
+                                <td>{a.title}</td>
+                                <td>{a.max_score} pts</td>
+                                <td>
+                                  <span className={`badge ${a.has_submitted ? (a.submission_status === 'GRADED' ? 'badge-success' : 'badge-warning') : 'badge-neutral'}`}>
+                                    {a.has_submitted ? `${a.submission_status}` : 'Not Submitted'}
+                                  </span>
+                                </td>
+                                <td>
+                                  {!a.has_submitted ? (
+                                    <button
+                                      className="btn btn-primary btn-sm"
+                                      onClick={() => {
+                                        setSelectedAssignment(a);
+                                        setShowSubmitModal(true);
+                                      }}
+                                    >
+                                      Submit
+                                    </button>
+                                  ) : (
+                                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                                      {a.submission_score !== null ? `${a.submission_score} / ${a.max_score}` : 'Under Review'}
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* 1B. TEACHER DASHBOARD (COURSE & ASSESSMENT-FOCUSED) */}
+              {currentUser.role === 'TEACHER' && (
+                <>
+                  <div className="role-banner">
+                    <div>
+                      <div className="role-banner-title">Faculty Portal: {currentUser.full_name}</div>
+                      <div className="role-banner-subtitle">
+                        Department of Computer Science & Academic Assessment
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button className="btn btn-primary btn-sm" onClick={() => setShowCourseModal(true)}>
+                        <PlusCircle size={14} /> New Course
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid-cols-4">
+                    <div className="card stat-card">
+                      <span className="stat-label">Active Modules</span>
+                      <span className="stat-value">{courses.length}</span>
+                      <span className="stat-subtext">Curriculum courses</span>
+                    </div>
+                    <div className="card stat-card">
+                      <span className="stat-label">Total Assignments</span>
+                      <span className="stat-value">{assignments.length}</span>
+                      <span className="stat-subtext">Active evaluations</span>
+                    </div>
+                    <div className="card stat-card">
+                      <span className="stat-label">Submissions To Grade</span>
+                      <span className="stat-value" style={{ color: '#b45309' }}>1</span>
+                      <span className="stat-subtext">Submissions awaiting review</span>
+                    </div>
+                    <div className="card stat-card">
+                      <span className="stat-label">Vector Knowledge Chunks</span>
+                      <span className="stat-value">10</span>
+                      <span className="stat-subtext">Indexed in pgvector</span>
+                    </div>
+                  </div>
+
+                  {/* Submissions Needing Review */}
+                  <div className="card" style={{ borderLeft: '3px solid #b45309' }}>
+                    <div className="card-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Clock size={16} color="#b45309" />
+                        <h3 className="card-title">Assessment Action Queue: Submissions Awaiting Grading</h3>
+                      </div>
+                      <span className="badge badge-warning">Action Required</span>
+                    </div>
+                    <div className="table-container">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Student</th>
+                            <th>Course & Assignment</th>
+                            <th>Submission Text</th>
+                            <th>Submitted</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <strong>Marcus Vance</strong>
+                              <div style={{ fontSize: '11px', color: '#64748b' }}>marcus@student.univ.edu</div>
+                            </td>
+                            <td>CS501: Index Performance Analysis</td>
+                            <td style={{ maxWidth: '300px', fontSize: '12px' }}>
+                              "Submitting my benchmark graphs and explain analyze output for grading."
+                            </td>
+                            <td>Today</td>
+                            <td>
+                              <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => {
+                                  setActiveSubmission({
+                                    id: 3,
+                                    student_name: 'Marcus Vance',
+                                    max_score: 100,
+                                    content: 'Submitting my benchmark graphs and explain analyze output for grading.'
+                                  });
+                                  setGradeScore(85);
+                                  setGradeFeedback('Good benchmark comparisons.');
+                                  setShowGradingModal(true);
+                                }}
+                              >
+                                Evaluate & Mark
                               </button>
                             </td>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
+
+                  {/* Course Summary View (SQL View) */}
+                  <div className="card">
+                    <div className="card-header">
+                      <h3 className="card-title">Course Analytics (PostgreSQL View: course_result_summary_view)</h3>
+                      <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('results')}>
+                        Full Analysis
+                      </button>
+                    </div>
+                    <div className="table-container">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Course</th>
+                            <th>Enrolled</th>
+                            <th>Graded</th>
+                            <th>Class Average</th>
+                            <th>Max</th>
+                            <th>Min</th>
+                            <th>Leaderboard</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {courseSummaryView.map((c, idx) => (
+                            <tr key={idx}>
+                              <td><strong>{c.course_code}</strong> - {c.course_title}</td>
+                              <td>{c.enrolled_students}</td>
+                              <td>{c.total_submissions_graded}</td>
+                              <td><strong>{c.average_assignment_score}</strong> / 100</td>
+                              <td style={{ color: '#15803d', fontWeight: '600' }}>{c.max_assignment_score}</td>
+                              <td style={{ color: '#b91c1c' }}>{c.min_assignment_score}</td>
+                              <td>
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => handleViewLeaderboard(c.course_id, c.course_title)}
+                                >
+                                  Window Ranks
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* 1C. ADMIN DASHBOARD (MANAGEMENT-FOCUSED) */}
+              {currentUser.role === 'ADMIN' && (
+                <>
+                  <div className="role-banner">
+                    <div>
+                      <div className="role-banner-title">Administrator Console: {currentUser.full_name}</div>
+                      <div className="role-banner-subtitle">
+                        Academic Platform Administration, Role Access & Infrastructure Governance
+                      </div>
+                    </div>
+                    <button className="btn btn-secondary btn-sm" onClick={loadInitialData}>
+                      <RefreshCw size={13} /> Refresh Health
+                    </button>
+                  </div>
+
+                  {/* Polyglot Health Cards */}
+                  <div className="grid-cols-4">
+                    <div className="card stat-card" style={{ borderLeft: '3px solid #1e3a8a' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Database size={16} color="#1e3a8a" />
+                        <span className="stat-label">PostgreSQL 18</span>
+                      </div>
+                      <span className="stat-value" style={{ fontSize: '18px', color: '#15803d' }}>ONLINE</span>
+                      <span className="stat-subtext">9 Relational Tables, Views & Triggers</span>
+                    </div>
+
+                    <div className="card stat-card" style={{ borderLeft: '3px solid #059669' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Activity size={16} color="#059669" />
+                        <span className="stat-label">pgvector 0.8.6</span>
+                      </div>
+                      <span className="stat-value" style={{ fontSize: '18px', color: '#15803d' }}>HNSW ACTIVE</span>
+                      <span className="stat-subtext">768-d Vector Cosine Distance</span>
+                    </div>
+
+                    <div className="card stat-card" style={{ borderLeft: '3px solid #0284c7' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Server size={16} color="#0284c7" />
+                        <span className="stat-label">MongoDB 7.0</span>
+                      </div>
+                      <span className="stat-value" style={{ fontSize: '18px', color: '#15803d' }}>CONNECTED</span>
+                      <span className="stat-subtext">Notifications & Activity Logs</span>
+                    </div>
+
+                    <div className="card stat-card" style={{ borderLeft: '3px solid #b45309' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Activity size={16} color="#b45309" />
+                        <span className="stat-label">Redis 7.2</span>
+                      </div>
+                      <span className="stat-value" style={{ fontSize: '18px', color: '#15803d' }}>PUB/SUB READY</span>
+                      <span className="stat-subtext">Event Bus & Real-Time Alerts</span>
+                    </div>
+                  </div>
+
+                  {/* Registered Users Summary */}
+                  <div className="card">
+                    <div className="card-header">
+                      <h3 className="card-title">Institutional User Directory ({allUsers.length})</h3>
+                      <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('admin')}>
+                        Manage Users
+                      </button>
+                    </div>
+                    <div className="table-container">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Role Scope</th>
+                            <th>Status</th>
+                            <th>Registered</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allUsers.slice(0, 5).map(u => (
+                            <tr key={u.id}>
+                              <td><strong>{u.full_name}</strong></td>
+                              <td>{u.email}</td>
+                              <td>
+                                <span className={`badge ${u.role === 'ADMIN' ? 'badge-danger' : u.role === 'TEACHER' ? 'badge-warning' : 'badge-info'}`}>
+                                  {u.role}
+                                </span>
+                              </td>
+                              <td><span className="badge badge-success">ACTIVE</span></td>
+                              <td>{new Date(u.created_at).toLocaleDateString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           )}
 
-          {/* TAB 2: COURSES */}
+          {/* ========================================================
+              TAB 2: COURSES
+             ======================================================== */}
           {activeTab === 'courses' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '18px' }}>Available Courses</h2>
+                <h2 style={{ fontSize: '17px' }}>Course Curriculum & Study Notes</h2>
                 {currentUser.role !== 'STUDENT' && (
-                  <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => setShowCourseModal(true)}
-                  >
-                    <PlusCircle size={16} />
-                    <span>Create Course</span>
+                  <button className="btn btn-primary btn-sm" onClick={() => setShowCourseModal(true)}>
+                    <PlusCircle size={14} /> Create Course
                   </button>
                 )}
               </div>
 
-              <div className="grid-cols-2">
-                {courses.map(course => (
+              {courses.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">
+                    <BookOpen size={20} />
+                  </div>
+                  <div className="empty-state-title">No Academic Courses Available</div>
+                  <div className="empty-state-desc">
+                    There are currently no courses registered in the curriculum database.
+                  </div>
+                </div>
+              ) : (
+                <div className="grid-cols-2">
+                  {courses.map(course => (
                   <div key={course.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <span className="badge badge-info">{course.code}</span>
-                        {course.is_enrolled && <span className="badge badge-success"><CheckCircle2 size={12} /> Enrolled</span>}
+                        {course.is_enrolled && <span className="badge badge-success"><CheckCircle2 size={11} /> Enrolled</span>}
                       </div>
-                      <h3 style={{ fontSize: '16px', marginBottom: '8px' }}>{course.title}</h3>
-                      <p style={{ fontSize: '13px', color: '#475569', marginBottom: '14px' }}>{course.description}</p>
+                      <h3 style={{ fontSize: '15.5px', marginBottom: '6px' }}>{course.title}</h3>
+                      <p style={{ fontSize: '12.5px', color: '#475569', marginBottom: '12px' }}>{course.description}</p>
                       <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px' }}>
-                        Instructor: <strong>{course.teacher_name}</strong> • Enrolled: {course.enrolled_count}
+                        Instructor: <strong>{course.teacher_name}</strong> • Students: {course.enrolled_count}
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '12px', flexWrap: 'wrap' }}>
                       <button
                         className="btn btn-secondary btn-sm"
                         onClick={async () => {
@@ -758,15 +1061,12 @@ export default function App() {
                           setSelectedCourse(det);
                         }}
                       >
-                        Course Details & Notes
+                        Notes & Syllabus
                       </button>
 
                       {currentUser.role === 'STUDENT' && !course.is_enrolled && (
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => handleEnroll(course.id)}
-                        >
-                          Enroll Now
+                        <button className="btn btn-primary btn-sm" onClick={() => handleEnroll(course.id)}>
+                          Enroll
                         </button>
                       )}
 
@@ -782,48 +1082,51 @@ export default function App() {
                         </button>
                       )}
 
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => handleViewLeaderboard(course.id, course.title)}
-                      >
-                        <Award size={14} /> Ranks
+                      <button className="btn btn-secondary btn-sm" onClick={() => handleViewLeaderboard(course.id, course.title)}>
+                        <Award size={13} /> Ranks
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
+              )}
 
               {selectedCourse && (
-                <div className="card" style={{ marginTop: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <h3 style={{ fontSize: '16px' }}>{selectedCourse.code}: {selectedCourse.title}</h3>
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">{selectedCourse.code}: {selectedCourse.title}</h3>
                     <button className="btn btn-secondary btn-sm" onClick={() => setSelectedCourse(null)}>Close</button>
                   </div>
-                  <p style={{ fontSize: '13.5px', marginBottom: '14px' }}><strong>Syllabus:</strong> {selectedCourse.syllabus}</p>
-                  
-                  <h4 style={{ fontSize: '14px', marginBottom: '10px' }}>Course Study Materials (Vector-Indexed in pgvector)</h4>
+                  <div style={{ fontSize: '13px', marginBottom: '14px', whiteSpace: 'pre-line' }}>
+                    <strong>Syllabus Outline:</strong><br />
+                    {selectedCourse.syllabus}
+                  </div>
+
+                  <h4 style={{ fontSize: '13.5px', marginBottom: '10px' }}>Lecture Materials (Vector-Indexed with pgvector)</h4>
                   {selectedCourse.materials && selectedCourse.materials.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {selectedCourse.materials.map((m: any) => (
-                        <div key={m.id} style={{ border: '1px solid #e2e8f0', padding: '12px', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
-                          <div style={{ fontWeight: '600', fontSize: '13.5px', marginBottom: '4px' }}>{m.title}</div>
-                          <div style={{ fontSize: '13px', color: '#334155' }}>{m.content}</div>
+                        <div key={m.id} style={{ border: '1px solid #e2e8f0', padding: '12px', borderRadius: '4px', backgroundColor: '#fafbfc' }}>
+                          <div style={{ fontWeight: '600', fontSize: '13px', marginBottom: '4px' }}>{m.title}</div>
+                          <div style={{ fontSize: '12.5px', color: '#334155' }}>{m.content}</div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="empty-state">No notes added to this course yet.</div>
+                    <div className="empty-state">No lecture notes uploaded yet for this course.</div>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          {/* TAB 3: ASSIGNMENTS */}
+          {/* ========================================================
+              TAB 3: ASSIGNMENTS
+             ======================================================== */}
           {activeTab === 'assignments' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '18px' }}>Course Assignments</h2>
+                <h2 style={{ fontSize: '17px' }}>Course Assignments & Submissions</h2>
                 {currentUser.role !== 'STUDENT' && (
                   <button
                     className="btn btn-primary btn-sm"
@@ -832,8 +1135,7 @@ export default function App() {
                       setShowAssignmentModal(true);
                     }}
                   >
-                    <PlusCircle size={16} />
-                    <span>Create Assignment</span>
+                    <PlusCircle size={14} /> New Assignment
                   </button>
                 )}
               </div>
@@ -850,62 +1152,73 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {assignments.map(a => (
-                      <tr key={a.id}>
-                        <td><strong>{a.course_code}</strong></td>
-                        <td>{a.title}</td>
-                        <td style={{ maxWidth: '300px' }}>{a.description}</td>
-                        <td>{a.max_score} pts</td>
-                        <td>
-                          {currentUser.role === 'STUDENT' ? (
-                            a.has_submitted ? (
-                              <span className={`badge ${a.submission_status === 'GRADED' ? 'badge-success' : 'badge-warning'}`}>
-                                {a.submission_status}: {a.submission_score !== null ? `${a.submission_score} / ${a.max_score}` : 'Pending Evaluation'}
-                              </span>
-                            ) : (
-                              <button
-                                className="btn btn-primary btn-sm"
-                                onClick={() => {
-                                  setSelectedAssignment(a);
-                                  setShowSubmitModal(true);
-                                }}
-                              >
-                                Submit Work
-                              </button>
-                            )
-                          ) : (
-                            <button
-                              className="btn btn-secondary btn-sm"
-                              onClick={() => handleOpenSubmissions(a)}
-                            >
-                              View Submissions
-                            </button>
-                          )}
+                    {assignments.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '32px' }}>
+                          <div className="empty-state" style={{ border: 'none', padding: '12px' }}>
+                            <div className="empty-state-icon">
+                              <FileText size={20} />
+                            </div>
+                            <div className="empty-state-title">No Assignments Available</div>
+                            <div className="empty-state-desc">
+                              There are currently no active assignments or assessments in the platform.
+                            </div>
+                          </div>
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      assignments.map(a => (
+                        <tr key={a.id}>
+                          <td><strong>{a.course_code}</strong></td>
+                          <td>{a.title}</td>
+                          <td style={{ maxWidth: '300px' }}>{a.description}</td>
+                          <td>{a.max_score} pts</td>
+                          <td>
+                            {currentUser.role === 'STUDENT' ? (
+                              a.has_submitted ? (
+                                <span className={`badge ${a.submission_status === 'GRADED' ? 'badge-success' : 'badge-warning'}`}>
+                                  {a.submission_status}: {a.submission_score !== null ? `${a.submission_score}/${a.max_score}` : 'Pending'}
+                                </span>
+                              ) : (
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  onClick={() => {
+                                    setSelectedAssignment(a);
+                                    setShowSubmitModal(true);
+                                  }}
+                                >
+                                  Submit Work
+                                </button>
+                              )
+                            ) : (
+                              <button className="btn btn-secondary btn-sm" onClick={() => handleOpenSubmissions(a)}>
+                                View Submissions
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
 
-              {/* Teacher's Submission Review Drawer */}
               {selectedAssignment && currentUser.role !== 'STUDENT' && (
-                <div className="card" style={{ marginTop: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <h3 style={{ fontSize: '16px' }}>Submissions for: {selectedAssignment.title}</h3>
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">Submissions: {selectedAssignment.title}</h3>
                     <button className="btn btn-secondary btn-sm" onClick={() => setSelectedAssignment(null)}>Close</button>
                   </div>
-
                   <div className="table-container">
                     <table className="data-table">
                       <thead>
                         <tr>
                           <th>Student</th>
                           <th>Submission Content</th>
-                          <th>Submitted At</th>
+                          <th>Submitted</th>
                           <th>Status</th>
                           <th>Score</th>
-                          <th>Evaluation</th>
+                          <th>Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -918,7 +1231,7 @@ export default function App() {
                                 <strong>{sub.student_name}</strong>
                                 <div style={{ fontSize: '11px', color: '#64748b' }}>{sub.student_email}</div>
                               </td>
-                              <td style={{ maxWidth: '350px', fontSize: '12.5px' }}>{sub.content}</td>
+                              <td style={{ maxWidth: '350px', fontSize: '12px' }}>{sub.content}</td>
                               <td>{new Date(sub.submitted_at).toLocaleDateString()}</td>
                               <td>
                                 <span className={`badge ${sub.status === 'GRADED' ? 'badge-success' : 'badge-warning'}`}>
@@ -926,7 +1239,7 @@ export default function App() {
                                 </span>
                               </td>
                               <td>
-                                <strong>{sub.score !== null ? `${sub.score} / ${sub.max_score}` : '—'}</strong>
+                                <strong>{sub.score !== null ? `${sub.score}/${sub.max_score}` : '—'}</strong>
                               </td>
                               <td>
                                 <button
@@ -952,87 +1265,127 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 4: ACADEMIC RESULTS */}
+          {/* ========================================================
+              TAB 4: RESULTS & VIEWS
+             ======================================================== */}
           {activeTab === 'results' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <h2 style={{ fontSize: '18px' }}>Academic Results & SQL Analysis</h2>
+              <h2 style={{ fontSize: '17px' }}>Official Academic Results & Database Views</h2>
 
               {currentUser.role === 'STUDENT' ? (
                 <div className="card">
-                  <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>Your Official Grades (student_progress_view)</h3>
+                  <div className="card-header">
+                    <h3 className="card-title">Student Performance Record (View: student_progress_view)</h3>
+                  </div>
                   <div className="table-container">
                     <table className="data-table">
                       <thead>
                         <tr>
                           <th>Course Code</th>
                           <th>Course Title</th>
-                          <th>Completed Assignments</th>
+                          <th>Assignments Completed</th>
                           <th>Total Points</th>
-                          <th>Grade</th>
+                          <th>Published Grade</th>
                           <th>Class Standings</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {progressView.map((p, idx) => (
-                          <tr key={idx}>
-                            <td><strong>{p.course_code}</strong></td>
-                            <td>{p.course_title}</td>
-                            <td>{p.submitted_assignments} / {p.total_assignments} ({p.completion_rate}%)</td>
-                            <td>{p.total_obtained_score} / {p.total_possible_score}</td>
-                            <td>
-                              <span className={`badge ${p.published_grade === 'A+' || p.published_grade === 'A' ? 'badge-success' : 'badge-info'}`}>
-                                {p.published_grade || 'Pending'}
-                              </span>
-                            </td>
-                            <td>
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                onClick={() => handleViewLeaderboard(p.course_id, p.course_title)}
-                              >
-                                View Ranks
-                              </button>
+                        {progressView.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} style={{ textAlign: 'center', padding: '32px' }}>
+                              <div className="empty-state" style={{ border: 'none', padding: '12px' }}>
+                                <div className="empty-state-icon">
+                                  <Award size={20} />
+                                </div>
+                                <div className="empty-state-title">No Grades Published Yet</div>
+                                <div className="empty-state-desc">
+                                  As your submitted assignments are evaluated by faculty, your academic standing computed by PostgreSQL student_progress_view will appear here.
+                                </div>
+                              </div>
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          progressView.map((p, idx) => (
+                            <tr key={idx}>
+                              <td><strong>{p.course_code}</strong></td>
+                              <td>{p.course_title}</td>
+                              <td>{p.submitted_assignments} / {p.total_assignments} ({p.completion_rate}%)</td>
+                              <td>{p.total_obtained_score} / {p.total_possible_score}</td>
+                              <td>
+                                <span className={`badge ${p.published_grade === 'A+' || p.published_grade === 'A' ? 'badge-success' : 'badge-info'}`}>
+                                  {p.published_grade || 'In Progress'}
+                                </span>
+                              </td>
+                              <td>
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => handleViewLeaderboard(p.course_id, p.course_title)}
+                                >
+                                  View Ranks
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
                 </div>
               ) : (
                 <div className="card">
-                  <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>Faculty Grade Summary (course_result_summary_view)</h3>
+                  <div className="card-header">
+                    <h3 className="card-title">Course Result Summary (View: course_result_summary_view)</h3>
+                  </div>
                   <div className="table-container">
                     <table className="data-table">
                       <thead>
                         <tr>
-                          <th>Course</th>
+                          <th>Course Code</th>
+                          <th>Course Title</th>
                           <th>Enrolled</th>
                           <th>Graded Subs</th>
-                          <th>Class Average</th>
+                          <th>Average Score</th>
                           <th>Highest</th>
                           <th>Lowest</th>
-                          <th>Leaderboard</th>
+                          <th>Rankings</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {courseSummaryView.map((c, idx) => (
-                          <tr key={idx}>
-                            <td><strong>{c.course_code}</strong> - {c.course_title}</td>
-                            <td>{c.enrolled_students}</td>
-                            <td>{c.total_submissions_graded}</td>
-                            <td><strong>{c.average_assignment_score}</strong></td>
-                            <td style={{ color: '#059669', fontWeight: '600' }}>{c.max_assignment_score}</td>
-                            <td style={{ color: '#dc2626' }}>{c.min_assignment_score}</td>
-                            <td>
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                onClick={() => handleViewLeaderboard(c.course_id, c.course_title)}
-                              >
-                                Window Rank
-                              </button>
+                        {courseSummaryView.length === 0 ? (
+                          <tr>
+                            <td colSpan={8} style={{ textAlign: 'center', padding: '32px' }}>
+                              <div className="empty-state" style={{ border: 'none', padding: '12px' }}>
+                                <div className="empty-state-icon">
+                                  <Award size={20} />
+                                </div>
+                                <div className="empty-state-title">No Course Summaries Available</div>
+                                <div className="empty-state-desc">
+                                  Course summary analytics from course_result_summary_view will populate once student enrollments and scores are processed.
+                                </div>
+                              </div>
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          courseSummaryView.map((c, idx) => (
+                            <tr key={idx}>
+                              <td><strong>{c.course_code}</strong></td>
+                              <td>{c.course_title}</td>
+                              <td>{c.enrolled_students}</td>
+                              <td>{c.total_submissions_graded}</td>
+                              <td><strong>{c.average_assignment_score}</strong> / 100</td>
+                              <td style={{ color: '#15803d', fontWeight: '600' }}>{c.max_assignment_score}</td>
+                              <td style={{ color: '#b91c1c' }}>{c.min_assignment_score}</td>
+                              <td>
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => handleViewLeaderboard(c.course_id, c.course_title)}
+                                >
+                                  Window Ranks
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1041,25 +1394,27 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 5: AI SMART NOTES SEARCH */}
+          {/* ========================================================
+              TAB 5: AI SMART NOTES SEARCH
+             ======================================================== */}
           {activeTab === 'ai-search' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <h2 style={{ fontSize: '18px', marginBottom: '6px' }}>AI Smart Notes Search</h2>
-                <p style={{ fontSize: '13px', color: '#475569' }}>
-                  Semantic similarity search powered by <strong>pgvector (HNSW cosine distance)</strong> and grounded with <strong>Gemini RAG</strong>. Answers strictly from course lecture notes.
+                <h2 style={{ fontSize: '17px', marginBottom: '4px' }}>AI Smart Notes Search</h2>
+                <p style={{ fontSize: '12.5px', color: '#64748b' }}>
+                  Semantic similarity retrieval via <strong>pgvector (HNSW cosine distance)</strong> and answer generation via <strong>Gemini RAG</strong>. Answers strictly from course notes.
                 </p>
               </div>
 
               <div className="card">
                 <form onSubmit={handleAISearch}>
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
                     <div style={{ flex: 1 }}>
                       <input
                         className="form-input"
                         style={{ width: '100%' }}
                         type="text"
-                        placeholder="Ask any technical question from your lecture notes..."
+                        placeholder="Ask a technical question from your lecture notes..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         required
@@ -1077,13 +1432,23 @@ export default function App() {
                       ))}
                     </select>
                     <button className="btn btn-primary" type="submit" disabled={aiSearching}>
-                      {aiSearching ? 'Searching & Grounding...' : 'Search Notes'}
+                      {aiSearching ? (
+                        <>
+                          <span className="spinner" />
+                          <span>Searching Notes...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Search size={14} />
+                          <span>Search Notes</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
 
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>Try asking:</span>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11.5px', color: '#64748b' }}>Sample Questions:</span>
                   {[
                     "How does PostgreSQL handle MVCC and vacuuming?",
                     "Explain Raft consensus leader election and voting terms",
@@ -1102,9 +1467,35 @@ export default function App() {
                 </div>
               </div>
 
+              {!aiResult && !aiSearching && (
+                <div className="card" style={{ backgroundColor: '#fafbfc', border: '1px dashed #cbd5e1' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                    <div className="empty-state-icon" style={{ flexShrink: 0, margin: 0, backgroundColor: '#eff6ff', color: '#1e3a8a' }}>
+                      <Search size={18} />
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Grounded RAG Lecture Assistant</h4>
+                      <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.5' }}>
+                        This semantic retrieval engine indexes lecture note chunks into PostgreSQL via <code>pgvector (HNSW cosine metric)</code>. When a query is submitted, relevant textbook & syllabus passages are retrieved and sent to Gemini to generate an answer grounded exclusively in verified course material.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {aiSearching && (
+                <div className="card" style={{ textAlign: 'center', padding: '36px 20px' }}>
+                  <span className="spinner spinner-primary" style={{ width: '24px', height: '24px', borderWidth: '3px', marginBottom: '12px' }} />
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-accent)' }}>Querying pgvector & Generating Grounded Answer</div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-light)', marginTop: '4px' }}>
+                    Calculating vector embeddings, searching HNSW index, and synthesizing answer with Gemini...
+                  </div>
+                </div>
+              )}
+
               {aiResult && (
-                <div className="card" style={{ borderLeft: aiResult.grounded ? '4px solid #059669' : '4px solid #d97706' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div className="card" style={{ borderLeft: aiResult.grounded ? '3px solid #15803d' : '3px solid #b45309' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span className={`badge ${aiResult.grounded ? 'badge-success' : 'badge-warning'}`}>
                         {aiResult.grounded ? 'Grounded in Course Material' : 'Ungrounded / Guardrailed'}
@@ -1114,19 +1505,19 @@ export default function App() {
                     <span style={{ fontSize: '12px', color: '#64748b' }}>Latency: {aiResult.latency_ms} ms</span>
                   </div>
 
-                  <div style={{ fontSize: '14.5px', lineHeight: '1.6', marginBottom: '16px', whiteSpace: 'pre-line' }}>
+                  <div style={{ fontSize: '13.5px', lineHeight: '1.6', marginBottom: '14px', whiteSpace: 'pre-line' }}>
                     {aiResult.answer}
                   </div>
 
                   {aiResult.sources && aiResult.sources.length > 0 && (
-                    <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '14px' }}>
-                      <h4 style={{ fontSize: '13px', color: '#475569', marginBottom: '8px' }}>
-                        Retrieved pgvector Source Citations ({aiResult.sources.length} chunks)
+                    <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+                      <h4 style={{ fontSize: '12.5px', color: '#475569', marginBottom: '8px' }}>
+                        Retrieved Course Sources ({aiResult.sources.length} chunks via pgvector)
                       </h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {aiResult.sources.map((s: any, idx: number) => (
-                          <div key={idx} style={{ backgroundColor: '#f8fafc', padding: '10px 14px', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '12.5px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                          <div key={idx} style={{ backgroundColor: '#f8fafc', padding: '9px 12px', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
                               <strong>{s.material_title} ({s.course_title})</strong>
                               <span className="badge badge-info">Similarity: {s.similarity_score}</span>
                             </div>
@@ -1141,22 +1532,32 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 6: NOTIFICATIONS */}
+          {/* ========================================================
+              TAB 6: NOTIFICATIONS
+             ======================================================== */}
           {activeTab === 'notifications' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <h2 style={{ fontSize: '18px' }}>Notifications & Real-Time Alerts (MongoDB + Redis)</h2>
+              <h2 style={{ fontSize: '17px' }}>Notifications & Real-Time Alerts (MongoDB + Redis)</h2>
 
               <div className="card">
                 {notifications.length === 0 ? (
-                  <div className="empty-state">No notifications right now.</div>
+                  <div className="empty-state" style={{ border: 'none', padding: '32px' }}>
+                    <div className="empty-state-icon">
+                      <Bell size={20} />
+                    </div>
+                    <div className="empty-state-title">No New Notifications</div>
+                    <div className="empty-state-desc">
+                      Your institutional feed is up to date. Alerts from grading events, submission confirmations, and announcements will appear here.
+                    </div>
+                  </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {notifications.map(n => (
                       <div
                         key={n.id}
                         style={{
-                          padding: '14px',
-                          borderRadius: '6px',
+                          padding: '12px 14px',
+                          borderRadius: '4px',
                           border: '1px solid #e2e8f0',
                           backgroundColor: n.is_read ? '#ffffff' : '#f0f9ff',
                           display: 'flex',
@@ -1165,15 +1566,15 @@ export default function App() {
                         }}
                       >
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
                             <span className={`badge ${n.type === 'GRADE' ? 'badge-success' : n.type === 'SUBMISSION' ? 'badge-info' : 'badge-neutral'}`}>
                               {n.type}
                             </span>
                             <strong>{n.title}</strong>
-                            {!n.is_read && <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0284c7' }} />}
+                            {!n.is_read && <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7' }} />}
                           </div>
-                          <div style={{ fontSize: '13px', color: '#475569' }}>{n.message}</div>
-                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                          <div style={{ fontSize: '12.5px', color: '#475569' }}>{n.message}</div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>
                             {new Date(n.created_at).toLocaleString()}
                           </div>
                         </div>
@@ -1194,62 +1595,63 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 7: ADMIN & HEALTH */}
+          {/* ========================================================
+              TAB 7: ADMIN & HEALTH
+             ======================================================== */}
           {activeTab === 'admin' && currentUser.role === 'ADMIN' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '18px' }}>System Architecture & Polyglot Persistence Health</h2>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={loadInitialData}
-                >
-                  <RefreshCw size={14} /> Refresh Health
+                <h2 style={{ fontSize: '17px' }}>System Architecture & Polyglot Health</h2>
+                <button className="btn btn-secondary btn-sm" onClick={loadInitialData}>
+                  <RefreshCw size={13} /> Refresh Status
                 </button>
               </div>
 
               {healthStatus && (
                 <div className="grid-cols-4">
-                  <div className="card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <Database size={18} color="#1e3a8a" />
-                      <strong style={{ fontSize: '14px' }}>PostgreSQL 18</strong>
+                  <div className="card stat-card" style={{ borderLeft: '3px solid #1e3a8a' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Database size={16} color="#1e3a8a" />
+                      <strong style={{ fontSize: '13px' }}>PostgreSQL 18</strong>
                     </div>
                     <span className="badge badge-success">{healthStatus.components.postgresql?.status}</span>
-                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>Relational, ACID, Views & Triggers</p>
+                    <p style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>9 Relational Tables & Views</p>
                   </div>
 
-                  <div className="card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <Activity size={18} color="#059669" />
-                      <strong style={{ fontSize: '14px' }}>pgvector 0.8.6</strong>
+                  <div className="card stat-card" style={{ borderLeft: '3px solid #059669' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Activity size={16} color="#059669" />
+                      <strong style={{ fontSize: '13px' }}>pgvector 0.8.6</strong>
                     </div>
                     <span className="badge badge-success">{healthStatus.components.pgvector?.status}</span>
-                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>768-d Vector Cosine Search</p>
+                    <p style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>768-d Vector Cosine Search</p>
                   </div>
 
-                  <div className="card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <Server size={18} color="#0284c7" />
-                      <strong style={{ fontSize: '14px' }}>MongoDB 7.0</strong>
+                  <div className="card stat-card" style={{ borderLeft: '3px solid #0284c7' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Server size={16} color="#0284c7" />
+                      <strong style={{ fontSize: '13px' }}>MongoDB 7.0</strong>
                     </div>
                     <span className="badge badge-success">{healthStatus.components.mongodb?.status}</span>
-                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>Notifications & Activity Logs</p>
+                    <p style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>Notifications & Activity Logs</p>
                   </div>
 
-                  <div className="card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <Activity size={18} color="#d97706" />
-                      <strong style={{ fontSize: '14px' }}>Redis 7.2</strong>
+                  <div className="card stat-card" style={{ borderLeft: '3px solid #b45309' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Activity size={16} color="#b45309" />
+                      <strong style={{ fontSize: '13px' }}>Redis 7.2</strong>
                     </div>
                     <span className="badge badge-success">{healthStatus.components.redis?.status}</span>
-                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>Pub/Sub & Event Cache</p>
+                    <p style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>Pub/Sub Event Broker</p>
                   </div>
                 </div>
               )}
 
-              {/* User Management */}
+              {/* User Directory */}
               <div className="card">
-                <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>Registered Academic Users ({allUsers.length})</h3>
+                <div className="card-header">
+                  <h3 className="card-title">Registered Academic Users ({allUsers.length})</h3>
+                </div>
                 <div className="table-container">
                   <table className="data-table">
                     <thead>
@@ -1259,7 +1661,7 @@ export default function App() {
                         <th>Email</th>
                         <th>Role</th>
                         <th>Status</th>
-                        <th>Created At</th>
+                        <th>Created</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1282,13 +1684,15 @@ export default function App() {
                 </div>
               </div>
 
-              {/* MongoDB Activity Log */}
+              {/* Activity Trail */}
               {adminOverview?.recent_activities && (
                 <div className="card">
-                  <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>Recent Platform Activity (MongoDB Audit Log)</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div className="card-header">
+                    <h3 className="card-title">Platform Activity Audit Log (MongoDB)</h3>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {adminOverview.recent_activities.map((act: any) => (
-                      <div key={act.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #f1f5f9', fontSize: '12.5px' }}>
+                      <div key={act.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 10px', borderBottom: '1px solid #f1f5f9', fontSize: '12px' }}>
                         <div>
                           <strong>{act.user_name}</strong>: {act.action}
                           {act.details && <span style={{ color: '#64748b', marginLeft: '6px' }}>({act.details})</span>}
@@ -1309,7 +1713,7 @@ export default function App() {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>Create New Academic Course</h3>
+              <h3>Create New Course</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => setShowCourseModal(false)}>✕</button>
             </div>
             <form onSubmit={handleCreateCourse}>
@@ -1323,8 +1727,8 @@ export default function App() {
                   <input className="form-input" placeholder="e.g. Advanced Operating Systems" value={newCourseTitle} onChange={e => setNewCourseTitle(e.target.value)} required />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Course Description</label>
-                  <textarea className="form-textarea" placeholder="Overview of the course..." value={newCourseDesc} onChange={e => setNewCourseDesc(e.target.value)} />
+                  <label className="form-label">Description</label>
+                  <textarea className="form-textarea" placeholder="Course overview..." value={newCourseDesc} onChange={e => setNewCourseDesc(e.target.value)} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Syllabus Outline</label>
@@ -1332,8 +1736,8 @@ export default function App() {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowCourseModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Create Course</button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowCourseModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary btn-sm">Create Course</button>
               </div>
             </form>
           </div>
@@ -1355,13 +1759,13 @@ export default function App() {
                   <input className="form-input" placeholder="e.g. Chapter 5: Write-Ahead Logging" value={newMaterialTitle} onChange={e => setNewMaterialTitle(e.target.value)} required />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Note Content (Automatically Chunked & Embedded)</label>
-                  <textarea className="form-textarea" style={{ minHeight: '140px' }} placeholder="Enter lecture notes text..." value={newMaterialContent} onChange={e => setNewMaterialContent(e.target.value)} required />
+                  <label className="form-label">Note Content (Automatically Chunked & Embedded in pgvector)</label>
+                  <textarea className="form-textarea" style={{ minHeight: '130px' }} placeholder="Enter lecture notes text..." value={newMaterialContent} onChange={e => setNewMaterialContent(e.target.value)} required />
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowMaterialModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Upload & Vectorize</button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowMaterialModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary btn-sm">Upload & Vectorize</button>
               </div>
             </form>
           </div>
@@ -1405,8 +1809,8 @@ export default function App() {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAssignmentModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Publish Assignment</button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowAssignmentModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary btn-sm">Publish Assignment</button>
               </div>
             </form>
           </div>
@@ -1427,8 +1831,8 @@ export default function App() {
                   <label className="form-label">Submission Content / Write-up</label>
                   <textarea
                     className="form-textarea"
-                    style={{ minHeight: '140px' }}
-                    placeholder="Enter your answers or benchmark results..."
+                    style={{ minHeight: '130px' }}
+                    placeholder="Enter your answers or query analysis..."
                     value={submissionContent}
                     onChange={e => setSubmissionContent(e.target.value)}
                     required
@@ -1446,8 +1850,8 @@ export default function App() {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowSubmitModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Confirm Submission</button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowSubmitModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary btn-sm">Confirm Submission</button>
               </div>
             </form>
           </div>
@@ -1464,7 +1868,7 @@ export default function App() {
             </div>
             <form onSubmit={handleGradeSubmission}>
               <div className="modal-body">
-                <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '4px', marginBottom: '14px', fontSize: '13px' }}>
+                <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '4px', marginBottom: '14px', fontSize: '12.5px' }}>
                   <strong>Student Submission:</strong>
                   <div style={{ marginTop: '4px', color: '#334155' }}>{activeSubmission.content}</div>
                 </div>
@@ -1492,8 +1896,8 @@ export default function App() {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowGradingModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Save & Calculate Grade</button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowGradingModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary btn-sm">Save Grade</button>
               </div>
             </form>
           </div>
@@ -1505,11 +1909,11 @@ export default function App() {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>Class Rank: {selectedCourseLeaderboardTitle}</h3>
+              <h3>Class Standings: {selectedCourseLeaderboardTitle}</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => setShowLeaderboardModal(false)}>✕</button>
             </div>
             <div className="modal-body">
-              <p style={{ fontSize: '12.5px', color: '#64748b', marginBottom: '12px' }}>
+              <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
                 Computed via PostgreSQL Window Function: <code>RANK() OVER (PARTITION BY course_id ORDER BY percentage DESC)</code>
               </p>
               <div className="table-container">
@@ -1544,7 +1948,7 @@ export default function App() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowLeaderboardModal(false)}>Close</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowLeaderboardModal(false)}>Close</button>
             </div>
           </div>
         </div>

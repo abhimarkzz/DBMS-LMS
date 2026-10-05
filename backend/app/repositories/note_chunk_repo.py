@@ -45,7 +45,16 @@ class NoteChunkRepository:
 
         where_sql = " AND ".join(where_clauses)
 
-        # Pure vector cosine similarity is the primary retrieval mechanism
+        # Hybrid ranking: pgvector cosine distance + keyword boost for precision
+        order_sql = "nc.embedding <=> CAST(:vec AS vector)"
+        if keyword_filter:
+            import re
+            stopwords = {"what", "where", "when", "which", "who", "whom", "this", "that", "how", "why", "does", "explain"}
+            tokens = [w for w in re.findall(r'\b[a-zA-Z]{3,}\b', keyword_filter.lower()) if w not in stopwords]
+            if tokens:
+                params["kw_term"] = f"%{tokens[0]}%"
+                order_sql = "(nc.embedding <=> CAST(:vec AS vector)) - (CASE WHEN nc.chunk_text ILIKE :kw_term OR sm.title ILIKE :kw_term THEN 0.4 ELSE 0 END)"
+
         sql = text(f"""
             SELECT 
                 nc.id AS chunk_id,
@@ -60,7 +69,7 @@ class NoteChunkRepository:
             JOIN study_materials sm ON nc.material_id = sm.id
             JOIN courses c ON nc.course_id = c.id
             WHERE {where_sql}
-            ORDER BY nc.embedding <=> CAST(:vec AS vector) ASC
+            ORDER BY {order_sql} ASC
             LIMIT :top_k;
         """)
 
