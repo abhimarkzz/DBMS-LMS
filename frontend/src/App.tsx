@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen, GraduationCap, CheckCircle2, Search, Bell,
   Activity, Award, FileText, LogOut, PlusCircle,
@@ -79,13 +79,8 @@ export default function App() {
     setTimeout(() => setFlashMessage(null), 4000);
   };
 
-  useEffect(() => {
-    if (currentUser) {
-      loadInitialData();
-    }
-  }, [currentUser]);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
+    if (!currentUser) return;
     try {
       const [cList, aList, notifs] = await Promise.all([
         api.getCourses(),
@@ -118,7 +113,14 @@ export default function App() {
     } catch (err: any) {
       console.error("Data load error:", err);
     }
-  };
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser) {
+      loadInitialData();
+    }
+  }, [currentUser, loadInitialData]);
+
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

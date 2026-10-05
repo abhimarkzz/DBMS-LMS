@@ -57,7 +57,7 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           JWT_SECRET: ci_secret_testing_key_12345
         run: |
-          PYTHONPATH=backend pytest backend/tests/test_api.py -v
+          PYTHONPATH=backend pytest backend/tests/ -v
 
   frontend-build:
     name: Frontend Build

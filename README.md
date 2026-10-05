@@ -1,28 +1,28 @@
 # AI-Powered Distributed Learning Management System
 
-> Scalable academic learning platform featuring polyglot persistence (PostgreSQL, MongoDB, pgvector, Redis), grounded Retrieval-Augmented Generation (Gemini AI RAG), and role-based academic workflows.
+> Enterprise-grade academic learning management platform featuring polyglot persistence (PostgreSQL + pgvector, MongoDB, Redis), grounded Retrieval-Augmented Generation (Gemini AI RAG), and role-based academic workflows.
 
 ---
 
 ## 1. Project Overview & Problem Statement
 
 ### The Problem
-Traditional Learning Management Systems (LMS) suffer from rigid relational designs that mix high-frequency event streaming with strict transactional academic records, leading to database lock contention. Furthermore, standard keyword search in university repositories fails to comprehend technical domain queries across lecture notes, slides, and syllabus documents, forcing students to manually comb through hundreds of pages of PDF material.
+Traditional Learning Management Systems (LMS) suffer from rigid single-database architectures that mix high-frequency event streaming with strict transactional academic records, leading to severe lock contention and unscalable search. Standard keyword search across university course material fails to grasp semantic intent, forcing students to manually comb through hundreds of pages of lecture notes and slides.
 
 ### The Solution
-This platform implements an enterprise-grade academic learning architecture separating concerns through **polyglot persistence**:
-1. **PostgreSQL** enforces ACID transactional integrity for relational academic data (users, courses, enrollments, assignments, submissions, and official marks).
-2. **MongoDB** stores document data, unread notifications, course announcements, and system audit logs.
-3. **pgvector** embeds lecture notes into high-dimensional vector space (768-d) and provides sub-millisecond Approximate Nearest Neighbor (ANN) semantic similarity search.
-4. **Redis** provides real-time event pub/sub and high-speed cache caching.
-5. **Gemini AI RAG Engine** synthesizes grounded academic answers exclusively citing uploaded course materials, with guardrails preventing hallucination.
+This platform implements an enterprise-grade academic learning architecture with **polyglot persistence**:
+1. **PostgreSQL** enforces ACID transactional integrity for relational academic data (users, courses, enrollments, assignments, submissions, official marks, views, triggers, and stored procedures).
+2. **MongoDB** stores unstructured document data, user notifications, course announcements, and system audit trails.
+3. **pgvector** embeds lecture notes into high-dimensional vector space (768-d) and provides sub-millisecond Approximate Nearest Neighbor (ANN) semantic similarity search via cosine distance (`<=>`).
+4. **Redis** provides real-time event pub/sub and high-speed cache with automatic graceful in-memory fallback if Redis is offline.
+5. **Gemini AI RAG Engine** synthesizes grounded academic answers exclusively citing retrieved course note chunks, with guardrails preventing hallucination.
 
 ---
 
 ## 2. Architecture & Service Boundaries
 
 ```
-[ React + TypeScript SPA ]
+[ React + TypeScript SPA (Vite) ]
             │
             ▼  (HTTP / REST / JWT Bearer)
 ┌────────────────────────────────────────────────────────┐
@@ -39,36 +39,36 @@ This platform implements an enterprise-grade academic learning architecture sepa
             │                  │                    │
  ┌──────────▼────────┐ ┌───────▼───────┐ ┌──────────▼───────────┐
  │ Result Service    │ │Notification   │ │AI Search Service     │
- │ - Stored Proc     │ │- MongoDB docs │ │- pgvector HNSW       │
+ │ - Stored Proc     │ │- MongoDB docs │ │- pgvector Cosine     │
  │ - Window Ranks    │ │- Redis PubSub │ │- Grounded Gemini RAG │
  └──────────┬────────┘ └───────┬───────┘ └──────────┬───────────┘
             │                  │                    │
-════════════╪══════════════════╪════════════════════╪════════════
-                     DATA PERSISTENCE LAYER
-  ┌─────────────────┐  ┌──────────────────┐  ┌────────────────┐
-  │ PostgreSQL 18   │  │  MongoDB 7.0     │  │  Redis 7.2     │
-  │ + pgvector      │  │  (Document DB)   │  │  (Pub/Sub)     │
-  │ - ACID Schema   │  │ - Notifications  │  │ - Event bus    │
-  │ - Views/Triggers│  │ - Activity logs  │  │ - Cache TTL    │
-  │ - 768-d Vectors │  │ - Announcements  │  │                │
-  └─────────────────┘  └──────────────────┘  └────────────────┘
+ ═══════════╪══════════════════╪════════════════════╪════════════
+                      DATA PERSISTENCE LAYER
+   ┌─────────────────┐  ┌──────────────────┐  ┌────────────────┐
+   │ PostgreSQL      │  │  MongoDB         │  │  Redis         │
+   │ + pgvector      │  │  (Document DB)   │  │  (Pub/Sub)     │
+   │ - ACID Schema   │  │ - Notifications  │  │ - Event bus    │
+   │ - Views/Triggers│  │ - Activity logs  │  │ - Cache TTL    │
+   │ - 768-d Vectors │  │ - Announcements  │  │ - Auto Fallback│
+   └─────────────────┘  └──────────────────┘  └────────────────┘
 ```
 
 ---
 
 ## 3. Demo Credentials
 
-The platform seeds realistic academic data upon first startup. Use any of the following accounts:
+The system seeds realistic academic data upon first startup. Use any of the following accounts:
 
 | Role | Email | Password | Full Name | Permissions |
 | :--- | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@univ.edu` | `AdminPass123!` | Dean Victoria Vance | System health, user directory, global audit |
-| **Teacher** | `prof.alan@univ.edu` | `Password123!` | Prof. Alan Turing | Course creation, assignment grading, notes upload |
-| **Teacher** | `dr.sarah@univ.edu` | `Password123!` | Dr. Sarah Connor | Course creation, assignment grading, notes upload |
-| **Student** | `alex@student.univ.edu` | `Password123!` | Alex Rivera | Enrolled in CS501-CS504, submissions, AI search |
-| **Student** | `priya@student.univ.edu` | `Password123!` | Priya Sharma | Enrolled, submissions, AI search |
-| **Student** | `marcus@student.univ.edu` | `Password123!` | Marcus Vance | Enrolled, pending submission, AI search |
-| **Student** | `elena@student.univ.edu` | `Password123!` | Elena Rostova | Enrolled, submissions, AI search |
+| **Admin** | `admin@univ.edu` | `AdminPass123!` | Dean Victoria Vance | System health, user directory, global audit overview |
+| **Teacher** | `prof.alan@univ.edu` | `Password123!` | Prof. Alan Turing | Course creation, assignment grading, notes upload & chunking |
+| **Teacher** | `dr.sarah@univ.edu` | `Password123!` | Dr. Sarah Connor | Course creation, assignment grading, notes upload & chunking |
+| **Student** | `alex@student.univ.edu` | `Password123!` | Alex Rivera | Enrolled in CS501-CS504, assignment submissions, AI search |
+| **Student** | `priya@student.univ.edu` | `Password123!` | Priya Sharma | Enrolled, submitted assignments, leaderboard rank |
+| **Student** | `marcus@student.univ.edu` | `Password123!` | Marcus Vance | Enrolled, assignment submissions, leaderboard rank |
+| **Student** | `elena@student.univ.edu` | `Password123!` | Elena Rostova | Enrolled, assignment submissions, leaderboard rank |
 
 ---
 
@@ -76,15 +76,15 @@ The platform seeds realistic academic data upon first startup. Use any of the fo
 
 | Syllabus Topic | Implementation Detail in Project | Source Reference |
 | :--- | :--- | :--- |
-| **Relational Modeling & DDL** | 9 normalized relational tables with PKs, FKs, CASCADE rules, unique constraints (`uq_student_course_enrollment`, `uq_assignment_student_submission`). | `app/models/sql_models.py` |
-| **Relational Views** | `student_progress_view`: aggregates course assignments, submission counts, completion %, and grade.<br>`course_result_summary_view`: instructor summary with avg/max/min score. | `app/database/postgres.py` |
-| **Triggers** | `trigger_auto_grade_submission`: executes on submission grading, automatically recalculating student course grades. | `app/database/postgres.py` |
-| **Stored Procedures / Functions** | `calculate_course_grade(student_id, course_id)`: plpgsql stored function computing total points, percentage, and letter grade (`A+`, `A`, `B`, `C`, `D`, `F`). | `app/database/postgres.py` |
-| **Window Functions** | `RANK() OVER (PARTITION BY course_id ORDER BY percentage DESC)` for class leaderboard standings. | `app/repositories/result_repo.py` |
-| **Subqueries** | Query finding students with scores strictly above the course average (`WHERE r.percentage > (SELECT AVG(percentage) FROM results ...)`). | `app/repositories/result_repo.py` |
-| **Vector DB (pgvector) & ANN** | 768-dimensional embeddings stored in `note_chunks.embedding` indexed with HNSW and queried using cosine distance (`<=>`). | `app/repositories/note_chunk_repo.py` |
-| **Document Store (MongoDB)** | Flexible BSON documents for notifications, announcements, and activity logs with compound indexes on `(user_id, created_at)`. | `app/database/mongo.py` |
-| **In-Memory Cache (Redis)** | Redis pub/sub dispatcher for instant notifications (`lms_notifications`) with graceful fallback. | `app/database/redis_client.py` |
+| **Relational Modeling & DDL** | 9 normalized relational tables with PKs, FKs, CASCADE rules, unique constraints (`uq_student_course_enrollment`, `uq_assignment_student_submission`). | `backend/app/models/sql_models.py` |
+| **Relational Views** | `student_progress_view`: aggregates course assignments, submission counts, completion %, and grade.<br>`course_result_summary_view`: instructor summary with avg/max/min score. | `backend/app/database/postgres.py` |
+| **Triggers** | `trigger_auto_grade_submission`: executes on submission grading, automatically recalculating student course grades. | `backend/app/database/postgres.py` |
+| **Stored Procedures / Functions** | `calculate_course_grade(student_id, course_id)`: plpgsql stored function computing total points, percentage, and letter grade (`A+`, `A`, `B`, `C`, `D`, `F`). | `backend/app/database/postgres.py` |
+| **Window Functions** | `RANK() OVER (PARTITION BY course_id ORDER BY percentage DESC)` for class leaderboard standings. | `backend/app/repositories/result_repo.py` |
+| **Subqueries** | Query finding students with scores strictly above the course average (`WHERE r.percentage > (SELECT AVG(percentage) FROM results ...)`). | `backend/app/repositories/result_repo.py` |
+| **Vector DB (pgvector) & ANN** | 768-dimensional embeddings stored in `note_chunks.embedding` indexed and queried using cosine distance (`<=>`). | `backend/app/repositories/note_chunk_repo.py` |
+| **Document Store (MongoDB)** | Flexible BSON documents for notifications, announcements, and activity logs with compound indexes on `(user_id, created_at)`. | `backend/app/database/mongo.py` |
+| **In-Memory Cache (Redis)** | Redis pub/sub dispatcher for instant notifications (`lms_notifications`) with graceful in-memory fallback. | `backend/app/database/redis_client.py` |
 
 ---
 
@@ -97,10 +97,10 @@ Teacher Uploads Notes
 [Text Chunking] ──▶ Semantic chunks (300-500 chars with overlap)
          │
          ▼
-[Vector Embedding] ──▶ 768-dimensional vector (Gemini text-embedding-004 / hash)
+[Vector Embedding] ──▶ 768-dimensional vector (Gemini text-embedding-004 / fallback)
          │
          ▼
-[pgvector Index] ──▶ Stored in note_chunks table (HNSW index)
+[pgvector Index] ──▶ Stored in note_chunks table in PostgreSQL
          │
 ────────────────────────────────────────────────────────────────
 Student Enters Question
@@ -115,155 +115,172 @@ Student Enters Question
 [Top-K Chunks] ──▶ Top relevant chunks retrieved from PostgreSQL
          │
          ▼
-[Relevance Filter] ──▶ Guardrail check: if no overlap, return "Not in course content"
+[Relevance Filter] ──▶ Guardrail check: if no overlap, refuse hallucination
          │
          ▼
-[Gemini 2.5/3.8 Flash] ──▶ Grounded synthesis citing specific course notes
+[Gemini 2.5 Flash] ──▶ Grounded synthesis citing specific course notes
 ```
 
 ---
 
-## 6. Local Setup & Running
+## 6. Environment Variables Configuration
+
+Copy `.env.example` to `.env` and configure with your service URLs:
+
+```ini
+# Database Configuration (PostgreSQL with pgvector)
+DATABASE_URL=postgresql://postgres:postgrespassword@localhost:5432/lms_db
+
+# MongoDB Configuration
+MONGODB_URL=mongodb://localhost:27017
+MONGODB_DB_NAME=lms_mongo_db
+
+# Redis Configuration (Optional: system auto-falls back to in-memory if offline)
+REDIS_URL=redis://localhost:6379/0
+
+# Security / JWT
+JWT_SECRET=supersecret_jwt_key_for_lms_platform_2026_academic
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# AI / Gemini API (Optional: deterministic semantic fallback enabled if unset)
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash
+EMBEDDING_MODEL=text-embedding-004
+
+# Server Configuration
+PORT=8000
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173
+```
+
+---
+
+## 7. Local Setup & Running
 
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL with `pgvector`
+- PostgreSQL (with `pgvector` extension)
 - MongoDB
-- Redis (optional, graceful fallback if offline)
+- Redis (optional, graceful fallback provided)
 
-### Step 1: Clone & Configure Environment
+### Step 1: Backend Setup
 ```bash
-cp .env.example .env
-```
-Edit `.env` if you wish to configure a live `GEMINI_API_KEY`:
-```ini
-DATABASE_URL=postgresql://localhost:5432/lms_db
-MONGODB_URL=mongodb://localhost:27017
-REDIS_URL=redis://localhost:6379/0
-JWT_SECRET=supersecret_jwt_key_for_lms_platform_2026_academic
-GEMINI_API_KEY=your_key_here
-```
-
-### Step 2: Backend Setup
-```bash
+# From repository root
 python3 -m venv venv
 source venv/bin/activate
 pip install -r backend/requirements.txt
 
-# Run backend server (auto-seeds demo data on first launch)
+# Run backend API server (auto-seeds demo data on first launch)
 PYTHONPATH=backend uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-Open API Swagger Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+- API Documentation (Swagger): [http://localhost:8000/docs](http://localhost:8000/docs)
+- Health Check: [http://localhost:8000/api/admin/health](http://localhost:8000/api/admin/health)
 
-### Step 3: Frontend Setup
+### Step 2: Frontend Setup
 In a new terminal:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Open Web Application: [http://localhost:5173](http://localhost:5173)
-
----
-
-## 7. Running with Docker Compose
-
-To start the complete polyglot persistence stack in Docker:
-
-```bash
-docker compose up --build -d
-```
-
-Services exposed:
-- **Frontend SPA**: [http://localhost:3000](http://localhost:3000)
-- **FastAPI API Gateway & Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **PostgreSQL (with pgvector)**: `localhost:5432`
-- **MongoDB**: `localhost:27017`
-- **Redis**: `localhost:6379`
-
-To view logs:
-```bash
-docker compose logs -f backend
-```
+- Web Application: [http://localhost:5173](http://localhost:5173)
 
 ---
 
 ## 8. Verification & Automated Testing
 
-Run the automated backend test suite:
+### Run Backend Tests (33 Integration & E2E Tests)
 ```bash
-PYTHONPATH=backend ./venv/bin/pytest backend/tests/test_api.py -v
+PYTHONPATH=backend pytest backend/tests/ -v
 ```
 
-Run the frontend TypeScript & production build check:
+### Run Frontend Production Build & Typecheck
 ```bash
-cd frontend && npm run build
+cd frontend
+npm run build
 ```
 
 ---
 
-## 9. Cloud Deployment (Railway / Render)
+## 9. Cloud Deployment (Normal Cloud Hosting)
 
-### Deployment to Railway:
-1. Push repository to GitHub.
-2. Create a new Railway project from your GitHub repo.
-3. Provision **PostgreSQL** (enable `vector` extension) and **MongoDB** add-ons in Railway.
-4. Set Environment Variables in Railway:
-   - `DATABASE_URL`: `${{Postgres.DATABASE_URL}}`
-   - `MONGODB_URL`: `${{MongoDB.MONGO_URL}}`
-   - `REDIS_URL`: `${{Redis.REDIS_URL}}`
-   - `JWT_SECRET`: Generate a secure random 32-character string.
-   - `GEMINI_API_KEY`: Your Gemini API key.
-5. Deploy `backend` and `frontend` services using their respective `Dockerfile`s.
-6. Verify `/api/admin/health` returns `status: HEALTHY`.
+This application is architected without container orchestration dependencies. It can be deployed to standard cloud providers:
+
+### Backend Deployment (Render, Railway, Fly.io, AWS EC2, Heroku)
+1. **Set Build Command**:
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+2. **Set Start Command**:
+   ```bash
+   uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir backend
+   ```
+3. **Set Environment Variables**:
+   - `DATABASE_URL`: Cloud PostgreSQL URI (e.g. Supabase, Neon, AWS RDS with `vector` extension enabled)
+   - `MONGODB_URL`: Cloud MongoDB URI (e.g. MongoDB Atlas)
+   - `REDIS_URL`: Cloud Redis URI (e.g. Upstash, AWS ElastiCache)
+   - `JWT_SECRET`: Random 32+ character secret string
+   - `GEMINI_API_KEY`: Google AI Studio API key
+   - `CORS_ORIGINS`: Comma-separated frontend domain URLs
+
+### Frontend Deployment (Vercel, Netlify, Cloudflare Pages, Render Static)
+1. **Root Directory**: `frontend`
+2. **Build Command**: `npm run build`
+3. **Output Directory**: `dist`
+4. **Environment Variables**:
+   - `VITE_API_URL`: Your deployed backend URL (e.g., `https://lms-api.example.com`)
 
 ---
 
 ## 10. Project Directory Structure
 
 ```
+.
 ├── .github/
 │   └── workflows/
-│       └── ci.yml               # GitHub Actions CI workflow
+│       └── ci.yml               # GitHub Actions CI workflow (tests & build)
 ├── backend/
 │   ├── app/
+│   │   ├── config.py            # Pydantic Settings & environment variables
+│   │   ├── main.py              # FastAPI application & API Gateway
 │   │   ├── database/
-│   │   │   ├── postgres.py      # PostgreSQL engine, session, views, triggers, stored proc
 │   │   │   ├── mongo.py         # MongoDB Motor client & collection indexes
-│   │   │   └── redis_client.py  # Redis cache & pub/sub event helper
+│   │   │   ├── postgres.py      # PostgreSQL engine, views, triggers, stored proc
+│   │   │   └── redis_client.py  # Redis cache, pub/sub & graceful fallback
 │   │   ├── models/
-│   │   │   ├── sql_models.py    # SQLAlchemy tables (pgvector NoteChunk)
-│   │   │   └── mongo_models.py  # MongoDB schemas
-│   │   ├── repositories/        # Database access layer (User, Course, Assignment, Result, NoteChunk)
-│   │   ├── schemas/             # Pydantic request/response schemas
-│   │   ├── services/            # Business logic (Auth, User, Course, Assignment, Result, AI RAG)
+│   │   │   └── sql_models.py    # SQLAlchemy tables (User, Course, NoteChunk, etc.)
+│   │   ├── repositories/        # Database data access layer
 │   │   ├── routers/             # FastAPI REST endpoints
+│   │   ├── schemas/             # Pydantic request & response schemas
 │   │   ├── seeds/
-│   │   │   └── seed_data.py     # Demo academic seed data
-│   │   ├── config.py            # Pydantic Settings
-│   │   └── main.py              # FastAPI app & API Gateway
-│   ├── tests/
-│   │   └── test_api.py          # Automated test suite (10 test cases)
+│   │   │   └── seed_data.py     # Initial demo academic seed data
+│   │   └── services/            # Core business logic & Gemini AI RAG engine
 │   ├── requirements.txt         # Pinned backend dependencies
-│   └── Dockerfile               # Backend Dockerfile
+│   └── tests/
+│       ├── test_api.py          # Functional API tests
+│       └── test_qa_exhaustive.py# Comprehensive QA integration tests
 ├── frontend/
-│   ├── src/
-│   │   ├── api.ts               # Typed API client
-│   │   ├── App.tsx              # Main UI with Student, Teacher, Admin dashboards
-│   │   ├── index.css            # Dignified university LMS design system
-│   │   └── main.tsx
-│   ├── Dockerfile               # Production multi-stage Dockerfile
-│   ├── nginx.conf               # Nginx reverse proxy
-│   └── vite.config.ts           # Vite proxy configuration
-├── docker-compose.yml           # Complete polyglot infrastructure
-├── .env.example                 # Environment template
-└── README.md                    # Project documentation
+│   ├── index.html               # HTML entry point with academic branding
+│   ├── package.json             # Pinned frontend dependencies
+│   ├── package-lock.json
+│   ├── tsconfig.json
+│   ├── tsconfig.app.json
+│   ├── tsconfig.node.json
+│   ├── vite.config.ts           # Vite development and proxy configuration
+│   └── src/
+│       ├── api.ts               # Typed API client
+│       ├── App.tsx              # Student, Teacher, and Admin dashboards
+│       ├── index.css            # Professional academic LMS design system
+│       └── main.tsx             # React DOM entry point
+├── .env.example                 # Cloud-ready environment variable template
+├── .gitignore                   # Comprehensive ignore rules
+└── README.md                    # Project documentation & deployment guide
 ```
 
 ---
 
 ## 11. Known Limitations & Future Improvements
-1. **Self-hosted LLM fallback**: Currently uses Google GenAI Gemini models (`gemini-2.5-flash` / `gemini-3.8-flash`) with deterministic semantic fallback; local Ollama / vLLM integration can be added.
-2. **Document formats**: Supports raw text and markdown note uploads; PDF text extraction (PyMuPDF / pdfplumber) can be attached for direct PDF ingestion.
-3. **Two-Phase Commit (2PC) comparison**: The architecture demonstrates Saga-style event compensation with Redis pub/sub; 2PC is documented in course material but not enforced globally to avoid distributed lock contention.
+1. **Document Formats**: Supports text and markdown note uploads for chunking and embedding. PDF parsing (`pypdf` / `pdfplumber`) can be added for direct multi-page PDF document ingestion.
+2. **LLM Provider Extensibility**: Native support for Google Gemini 2.5 Flash with built-in semantic vector fallback. Can be extended to local Ollama / vLLM deployments.
+3. **Distributed Transactions**: The system demonstrates Saga event compensation with Redis pub/sub. Two-Phase Commit (2PC) is documented in course materials but avoided across independent cloud datastores to minimize latency and distributed locking.
