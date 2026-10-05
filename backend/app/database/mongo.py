@@ -12,6 +12,22 @@ sync_mongo_client: MongoClient = None
 
 def get_mongo_db():
     global mongo_client, mongo_db
+    try:
+        import asyncio
+        current_loop = asyncio.get_running_loop()
+    except RuntimeError:
+        current_loop = None
+
+    if mongo_client is not None:
+        try:
+            client_loop = mongo_client.get_io_loop()
+            if client_loop.is_closed() or (current_loop is not None and client_loop != current_loop):
+                mongo_client = None
+                mongo_db = None
+        except Exception:
+            mongo_client = None
+            mongo_db = None
+
     if mongo_db is None:
         try:
             mongo_client = AsyncIOMotorClient(settings.MONGODB_URL, serverSelectionTimeoutMS=2000)
@@ -20,6 +36,8 @@ def get_mongo_db():
         except Exception as e:
             logger.warning(f"MongoDB connection error: {e}")
     return mongo_db
+
+
 
 
 def get_sync_mongo():

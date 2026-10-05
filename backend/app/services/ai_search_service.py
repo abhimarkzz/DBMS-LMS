@@ -180,7 +180,7 @@ class AISearchService:
             "have", "has", "had", "does", "doing", "would", "should", "could", "about", "into",
             "through", "during", "before", "after", "above", "below", "from", "down", "with",
             "explain", "describe", "tell", "please", "for", "the", "and", "can", "are", "were",
-            "was", "been", "being", "how", "why", "any", "some", "all", "its", "their", "more"
+            "was", "been", "being", "how", "why", "any", "some", "all", "its", "their", "more", "give"
         }
         query_words = {w for w in re.findall(r'\b[a-zA-Z]{3,}\b', query.lower()) if w not in stopwords}
 
@@ -190,7 +190,7 @@ class AISearchService:
             top_texts = " ".join(c.get("chunk_text", "").lower() for c in matched_chunks[:2])
             overlap = any(qw in top_texts for qw in query_words)
             
-            if overlap or (highest_score >= 0.35):
+            if overlap or (highest_score >= 0.55):
                 is_relevant = True
 
         if not is_relevant or not matched_chunks:

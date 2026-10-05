@@ -49,8 +49,11 @@ class NoteChunkRepository:
         order_sql = "nc.embedding <=> CAST(:vec AS vector)"
         if keyword_filter:
             import re
-            stopwords = {"what", "where", "when", "which", "who", "whom", "this", "that", "how", "why", "does", "explain"}
-            tokens = [w for w in re.findall(r'\b[a-zA-Z]{3,}\b', keyword_filter.lower()) if w not in stopwords]
+            stopwords = {
+                "what", "where", "when", "which", "who", "whom", "this", "that", "how", "why", 
+                "does", "explain", "give", "tell", "show", "find", "make", "help", "need", "want", "describe"
+            }
+            tokens = [w for w in re.findall(r'\b[a-zA-Z]{4,}\b', keyword_filter.lower()) if w not in stopwords]
             if tokens:
                 params["kw_term"] = f"%{tokens[0]}%"
                 order_sql = "(nc.embedding <=> CAST(:vec AS vector)) - (CASE WHEN nc.chunk_text ILIKE :kw_term OR sm.title ILIKE :kw_term THEN 0.4 ELSE 0 END)"
