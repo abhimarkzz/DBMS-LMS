@@ -23,10 +23,21 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     
-    # Gemini AI
+    # LLM & Search Provider (Groq Primary)
+    LLM_PROVIDER: str = "groq"
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
+    GROQ_WEB_MODEL: str = "openai/gpt-oss-120b"
+    GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
+
+    # Embedding Provider (Local 768-dim Primary)
+    EMBEDDING_PROVIDER: str = "local"
+    EMBEDDING_MODEL: str = "sentence-transformers/all-mpnet-base-v2"
+    EMBEDDING_DIMENSION: int = 768
+
+    # Legacy Gemini AI (Optional fallback)
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-3.8-flash"
-    EMBEDDING_MODEL: str = "gemini-embedding-2"
     
     # CORS
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"

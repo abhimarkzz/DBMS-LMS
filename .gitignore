@@ -14,8 +14,12 @@ __pycache__/
 *.so
 .Python
 venv/
+.venv/
 env/
 ENV/
+build/
+logs/
+*.log
 .pytest_cache/
 .coverage
 htmlcov/
@@ -41,3 +45,6 @@ yarn-error.log*
 *.swo
 .DS_Store
 Thumbs.db
+
+# Database backups & local dumps
+backups/

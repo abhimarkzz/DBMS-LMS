@@ -17,7 +17,8 @@ from app.routers import (
     result_router,
     notification_router,
     ai_search_router,
-    admin_router
+    admin_router,
+    dashboard_router
 )
 
 # Logging configuration
@@ -68,7 +69,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Distributed Learning Management System with Polyglot Persistence (PostgreSQL, MongoDB, pgvector, Redis) and Grounded Gemini AI RAG Search.",
+    description="Distributed Learning Management System with Polyglot Persistence (PostgreSQL, MongoDB, pgvector, Redis) and Grounded Groq AI Research Engine.",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc"
@@ -81,6 +82,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 
@@ -119,6 +121,7 @@ app.include_router(result_router.router)
 app.include_router(notification_router.router)
 app.include_router(ai_search_router.router)
 app.include_router(admin_router.router)
+app.include_router(dashboard_router.router)
 
 
 @app.get("/", tags=["Health"])

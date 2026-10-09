@@ -35,3 +35,20 @@ class ResultService:
     def recalculate_course_grade(self, student_id: int, course_id: int) -> str:
         """Executes PostgreSQL Stored Function: calculate_course_grade."""
         return self.result_repo.execute_stored_procedure_calculate_grade(student_id, course_id)
+
+    def get_student_course_breakdown(self, student_id: int, course_id: int) -> Dict[str, Any]:
+        """Detailed course breakdown with individual assignment scores, feedback, and class rank."""
+        return self.result_repo.get_student_course_breakdown(student_id, course_id)
+
+    def get_student_academic_overview(self, student_id: int) -> Dict[str, Any]:
+        """Overall student academic standing, course-by-course results, completed/pending tasks."""
+        return self.result_repo.get_student_academic_overview(student_id)
+
+    def get_course_gradebook(self, course_id: int) -> Dict[str, Any]:
+        """Teacher gradebook matrix with student rows, assignment columns, class stats, and leaderboard."""
+        return self.result_repo.get_course_gradebook(course_id)
+
+    def get_admin_academic_stats(self) -> Dict[str, Any]:
+        """Admin platform-wide academic statistics from database views and tables."""
+        return self.result_repo.get_admin_academic_stats()
+

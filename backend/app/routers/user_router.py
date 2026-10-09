@@ -16,7 +16,7 @@ def get_all_users(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(["ADMIN", "TEACHER"]))
+    _: User = Depends(require_roles(["ADMIN"]))
 ):
     service = UserService(db)
     return service.list_all_users(skip=skip, limit=limit)

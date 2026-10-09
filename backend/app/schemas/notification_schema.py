@@ -8,10 +8,19 @@ class NotificationResponse(BaseModel):
     user_id: int
     title: str
     message: str
-    type: str  # SYSTEM, GRADE, ENROLLMENT, ANNOUNCEMENT
+    type: str  # ASSIGNMENT_PUBLISHED, SUBMISSION_SUCCESS, GRADE_PUBLISHED, etc.
     is_read: bool = False
     metadata: Optional[Dict[str, Any]] = None
     created_at: datetime
+
+
+class UnreadCountResponse(BaseModel):
+    unread_count: int
+
+
+class MarkAllReadResponse(BaseModel):
+    success: bool
+    marked_count: int
 
 
 class AnnouncementCreate(BaseModel):

@@ -11,13 +11,9 @@ logger = logging.getLogger(__name__)
 
 async def seed_all_data(db: Session):
     """Seed comprehensive realistic academic demo data."""
-    # Check if already seeded
-    existing_admin = db.query(User).filter(User.email == "admin@univ.edu").first()
-    if existing_admin:
-        logger.info("Database already seeded with demo data.")
-        return
-
-    logger.info("Seeding initial academic database...")
+    from app.seeds.clean_and_seed_courses import run_clean_and_seed
+    await run_clean_and_seed()
+    return
 
     # 1. Roles
     roles = {}

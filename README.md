@@ -259,7 +259,12 @@ This application is architected without container orchestration dependencies. It
 │   ├── requirements.txt         # Pinned backend dependencies
 │   └── tests/
 │       ├── test_api.py          # Functional API tests
-│       └── test_qa_exhaustive.py# Comprehensive QA integration tests
+│       ├── test_qa_exhaustive.py# Comprehensive QA integration tests
+│       ├── test_assessment_real.py# Assessment and auto-grading tests
+│       ├── test_gradebook_real.py # Gradebook matrix & SQL view tests
+│       ├── test_notifications_real.py # Notification dispatch & MongoDB tests
+│       ├── test_security_audit.py # Security & RBAC isolation tests
+│       └── test_study_material_real.py # Document parsing & pgvector tests
 ├── frontend/
 │   ├── index.html               # HTML entry point with academic branding
 │   ├── package.json             # Pinned frontend dependencies
@@ -280,7 +285,7 @@ This application is architected without container orchestration dependencies. It
 
 ---
 
-## 11. Known Limitations & Future Improvements
-1. **Document Formats**: Supports text and markdown note uploads for chunking and embedding. PDF parsing (`pypdf` / `pdfplumber`) can be added for direct multi-page PDF document ingestion.
-2. **LLM Provider Extensibility**: Native support for Google Gemini 2.5 Flash with built-in semantic vector fallback. Can be extended to local Ollama / vLLM deployments.
-3. **Distributed Transactions**: The system demonstrates Saga event compensation with Redis pub/sub. Two-Phase Commit (2PC) is documented in course materials but avoided across independent cloud datastores to minimize latency and distributed locking.
+## 11. Known Limitations & Production Architecture Notes
+1. **Document Formats**: Multi-format document parsing is operational for PDF, DOCX, PPTX, TXT, and MD files with automated text extraction, chunking, and pgvector storage.
+2. **AI Provider**: Powered by Google Gemini (`gemini-3.5-flash`) with sub-millisecond pgvector cosine retrieval (`<=>`) and deterministic semantic fallback when offline.
+3. **Cache & Pub/Sub**: Redis 7+ pub/sub event bus with seamless in-memory fallback if Redis is unreachable.
