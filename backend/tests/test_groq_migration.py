@@ -101,7 +101,7 @@ async def test_groq_generation_with_retrieved_course_context(client, monkeypatch
         "/api/search",
         headers={"Authorization": f"Bearer {token}"},
         json={
-            "query": "How does Dijkstra algorithm find the shortest path in a weighted graph?",
+            "query": "Explain how Dijkstra algorithm uses greedy relaxation and min-heaps in a weighted graph",
             "mode": "COURSE_NOTES"
         }
     )
