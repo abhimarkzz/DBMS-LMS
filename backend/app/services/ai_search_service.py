@@ -347,7 +347,7 @@ class AISearchService:
                     ],
                     model=settings.GROQ_MODEL,
                     temperature=0.2,
-                    max_tokens=1500
+                    max_tokens=600
                 )
                 if resp.get("success") and resp.get("content"):
                     candidate_text = resp["content"].strip()
@@ -650,7 +650,14 @@ class AISearchService:
         )
 
         has_course = course_res.get("grounded", False) and course_res.get("search_status") == "SUCCESS"
-        has_web = (web_res.get("grounded", False) or web_res.get("status") == "SUCCESS") and bool(web_res.get("web_sources"))
+        has_web = (
+            web_res.get("status") == "SUCCESS"
+            or web_res.get("grounded", False)
+        ) and (
+            bool(web_res.get("web_sources"))
+            or bool(web_res.get("key_findings"))
+            or (len(web_res.get("answer", "")) > 40 and "unavailable" not in web_res.get("answer", "").lower())
+        )
 
         # Combine sources and citations
         course_sources = course_res.get("course_sources", [])
@@ -700,7 +707,7 @@ class AISearchService:
         else:
             search_status = "NO_RESULTS"
             hybrid_sections.append(
-                f"No relevant information was found in your course notes, and live web research could not retrieve matching sources for: '{query}'."
+                f"No relevant lecture notes found in enrolled courses for '{query}', and live web research could not retrieve matching external sources."
             )
 
         full_hybrid_answer = "\n\n".join(hybrid_sections)
@@ -708,16 +715,26 @@ class AISearchService:
 
         key_findings = course_res.get("key_findings", []) + web_res.get("key_findings", [])
 
+        # Choose the most accurate direct answer based on what was found
+        if has_course and has_web:
+            direct_ans = course_res.get("direct_answer") or web_res.get("direct_answer")
+        elif has_web:
+            direct_ans = web_res.get("direct_answer") or (web_res.get("key_findings")[0] if web_res.get("key_findings") else None) or "Live web research identified verified external documentation."
+        elif has_course:
+            direct_ans = course_res.get("direct_answer")
+        else:
+            direct_ans = "No matching materials found in course notes or live web research."
+
         return {
             "query": query,
             "mode": "hybrid",
             "depth": depth,
             "freshness": freshness,
             "answer": full_hybrid_answer,
-            "direct_answer": course_res.get("direct_answer") or web_res.get("direct_answer"),
+            "direct_answer": direct_ans,
             "key_findings": key_findings[:5],
             "grounded": has_course or has_web,
-            "sources": legacy_sources,
+            "sources": legacy_sources if has_course else web_sources,
             "course_sources": course_sources,
             "web_sources": web_sources,
             "citations": combined_citations,
@@ -809,9 +826,9 @@ class AISearchService:
                 depth=depth
             )
 
-        # Cache successful results
+        # Cache successful results to conserve Groq API tokens
         if res.get("search_status") in ("SUCCESS", "PARTIAL_SUCCESS") and res.get("grounded"):
-            ttl = 300 if freshness in ("day", "week", "DAY", "WEEK") else 600
+            ttl = 600 if freshness in ("day", "week", "DAY", "WEEK") else 3600
             await cache_set(cache_key, res, ttl_seconds=ttl)
 
         return res

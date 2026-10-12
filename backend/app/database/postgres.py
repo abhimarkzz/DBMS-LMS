@@ -5,12 +5,18 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Normalize DATABASE_URL for SQLAlchemy
+# Normalize DATABASE_URL for SQLAlchemy (support both psycopg and psycopg2)
 db_url = settings.DATABASE_URL
+try:
+    import psycopg
+    driver = "postgresql+psycopg"
+except ImportError:
+    driver = "postgresql+psycopg2"
+
 if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+    db_url = db_url.replace("postgres://", f"{driver}://", 1)
 elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
-    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    db_url = db_url.replace("postgresql://", f"{driver}://", 1)
 
 engine = create_engine(
     db_url,

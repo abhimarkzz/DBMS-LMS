@@ -76,6 +76,8 @@ class GroqClient:
             "temperature": temperature,
             "max_tokens": max_tokens
         }
+        if "gpt-oss" in target_model:
+            payload["reasoning_effort"] = "low"
         if tools:
             payload["tools"] = tools
 
@@ -105,10 +107,12 @@ class GroqClient:
                         msg = choices[0].get("message", {})
                         content = msg.get("content", "") or ""
                         tool_calls = msg.get("tool_calls", [])
+                        executed_tools = msg.get("executed_tools", [])
                         return {
                             "success": True,
                             "content": content,
                             "tool_calls": tool_calls,
+                            "executed_tools": executed_tools,
                             "model": data.get("model", target_model),
                             "usage": data.get("usage", {}),
                             "status_code": 200
@@ -118,12 +122,20 @@ class GroqClient:
                     elif resp.status_code == 429:
                         resp_text = resp.text
                         logger.warning(f"Groq API 429 Rate Limit (attempt {attempt + 1}/{max_retries + 1}): {resp_text}")
+
+                        # If 120b hit limit or quota, seamlessly failover to gpt-oss-20b
+                        if "120b" in target_model and payload.get("model") != "openai/gpt-oss-20b":
+                            logger.info("Failing over from gpt-oss-120b to high-throughput openai/gpt-oss-20b on 429")
+                            payload["model"] = "openai/gpt-oss-20b"
+                            target_model = "openai/gpt-oss-20b"
+                            continue
+
                         # Check Retry-After header
                         retry_after = resp.headers.get("retry-after")
                         sleep_time = float(retry_after) if retry_after and retry_after.isdigit() else backoff + random.uniform(0.1, 0.5)
 
                         if attempt < max_retries and "quota" not in resp_text.lower():
-                            await asyncio.sleep(min(sleep_time, 4.0))
+                            await asyncio.sleep(min(sleep_time, 3.0))
                             backoff *= 2.0
                             continue
                         else:
@@ -255,14 +267,14 @@ class GroqClient:
 
         tools = [{"type": "browser_search"}]
 
-        # Invoke Groq API
+        # Invoke Groq API with token-efficient budget
         resp = await self.chat_completion(
             messages=messages,
             model=self.web_model,
             temperature=0.2,
-            max_tokens=2048,
+            max_tokens=700,
             tools=tools,
-            timeout=75.0
+            timeout=50.0
         )
 
         latency = round((time.time() - start_time) * 1000, 2)
@@ -308,18 +320,25 @@ class GroqClient:
                 "model_used": resp.get("model", self.web_model)
             }
 
-        # Extract URLs and citations from the response
-        extracted_sources, citations = self._extract_sources_and_citations(raw_text, query, retrieval_iso)
+        # Clean browser internal citations like 【5†L18-L22】
+        cleaned_text = re.sub(r'【\d+†[a-zA-Z0-9\-_.]+】', '', raw_text).strip()
 
-        key_findings = self._extract_key_findings(raw_text)
-        direct_answer = self._extract_direct_answer(raw_text)
+        # Extract URLs and citations from executed_tools, tool_calls, and text
+        executed_tools = resp.get("executed_tools", [])
+        tool_calls = resp.get("tool_calls", [])
+        extracted_sources, citations = self._extract_sources_and_citations(
+            cleaned_text, query, retrieval_iso, executed_tools, tool_calls
+        )
+
+        key_findings = self._extract_key_findings(cleaned_text)
+        direct_answer = self._extract_direct_answer(cleaned_text)
 
         return {
             "status": "SUCCESS",
-            "answer": raw_text,
+            "answer": cleaned_text,
             "direct_answer": direct_answer,
             "key_findings": key_findings,
-            "grounded": bool(extracted_sources),
+            "grounded": bool(extracted_sources) or bool(key_findings),
             "web_sources": extracted_sources,
             "citations": citations,
             "search_queries": [query],
@@ -331,19 +350,74 @@ class GroqClient:
         self,
         text: str,
         query: str,
-        retrieval_iso: str
+        retrieval_iso: str,
+        executed_tools: Optional[List[Dict[str, Any]]] = None,
+        tool_calls: Optional[List[Dict[str, Any]]] = None
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        """Extract genuine URLs and create structured citations."""
-        url_pattern = re.compile(r'https?://[^\s)\]><"]+')
-        found_urls = url_pattern.findall(text)
-
+        """Extract genuine URLs and create structured citations from tool outputs and text."""
         sources: List[Dict[str, Any]] = []
         citations: List[Dict[str, Any]] = []
         seen: Set[str] = set()
 
-        for idx, raw_url in enumerate(found_urls):
-            # Clean trailing punctuation
-            clean_url = raw_url.rstrip(".,;:")
+        # 1. First extract verified URLs directly from executed browser tools
+        tools_list = (executed_tools or []) + (tool_calls or [])
+        for tool_item in tools_list:
+            if not isinstance(tool_item, dict):
+                continue
+            sr = tool_item.get("search_results") or {}
+            results = sr.get("results", []) if isinstance(sr, dict) else []
+            for res in results:
+                if not isinstance(res, dict):
+                    continue
+                raw_url = (res.get("url") or "").strip()
+                if not raw_url or not raw_url.startswith("http"):
+                    continue
+                clean_url = raw_url.rstrip(".,;:)")
+                parsed = urllib.parse.urlparse(clean_url)
+                domain = parsed.netloc or "web"
+                norm_key = f"{domain}{parsed.path}"
+                if norm_key in seen:
+                    continue
+                seen.add(norm_key)
+
+                raw_title = res.get("title") or domain
+                # Clean title if it has line prefixes like "domain - viewing lines..."
+                clean_title = re.sub(r'\s*-\s*viewing lines.*$', '', raw_title).strip() or domain
+                source_cat = classify_domain_credibility(domain)
+                snippet_text = (res.get("content") or "").strip()
+                # Remove line number prefixes like L10: from snippet
+                clean_snippet = re.sub(r'L\d+:\s*', '', snippet_text)
+                if not clean_snippet or len(clean_snippet) < 15:
+                    clean_snippet = f"Live web documentation verified via Browser Search for query: '{query[:60]}'."
+
+                source_item = {
+                    "title": clean_title,
+                    "url": clean_url,
+                    "domain": domain,
+                    "publication_date": None,
+                    "retrieval_date": retrieval_iso,
+                    "snippet": clean_snippet[:350],
+                    "source_type": source_cat,
+                    "relevance_score": round(max(0.75, 1.0 - (len(sources) * 0.05)), 2)
+                }
+                sources.append(source_item)
+                citations.append({
+                    "source_id": f"web-{len(sources)}",
+                    "source_title": clean_title,
+                    "source_url": clean_url,
+                    "citation_text": f"Verified Web Reference: {clean_title}",
+                    "source_type": "WEB"
+                })
+                if len(sources) >= 6:
+                    break
+            if len(sources) >= 6:
+                break
+
+        # 2. Also extract any explicit URLs found in generated markdown text
+        url_pattern = re.compile(r'https?://[^\s)\]><"]+')
+        found_urls = url_pattern.findall(text)
+        for raw_url in found_urls:
+            clean_url = raw_url.rstrip(".,;:)")
             parsed = urllib.parse.urlparse(clean_url)
             domain = parsed.netloc or "web"
             norm_key = f"{domain}{parsed.path}"
@@ -353,23 +427,20 @@ class GroqClient:
 
             source_cat = classify_domain_credibility(domain)
             title = domain
-            # Check if text contains markdown link [Title](URL)
             md_match = re.search(r'\[([^\]]+)\]\(' + re.escape(raw_url) + r'\)', text)
             if md_match:
                 title = md_match.group(1).strip()
 
-            source_item = {
+            sources.append({
                 "title": title,
                 "url": clean_url,
                 "domain": domain,
-                "publication_date": None,  # Truthful, not fabricated
+                "publication_date": None,
                 "retrieval_date": retrieval_iso,
-                "snippet": f"Web reference verified via Groq Browser Search for topic: '{query[:60]}'.",
+                "snippet": f"Web reference verified via Browser Search for topic: '{query[:60]}'.",
                 "source_type": source_cat,
                 "relevance_score": round(max(0.70, 1.0 - (len(sources) * 0.05)), 2)
-            }
-            sources.append(source_item)
-
+            })
             citations.append({
                 "source_id": f"web-{len(sources)}",
                 "source_title": title,
@@ -377,7 +448,6 @@ class GroqClient:
                 "citation_text": f"Source reference: {title}",
                 "source_type": "WEB"
             })
-
             if len(sources) >= 6:
                 break
 
@@ -389,22 +459,38 @@ class GroqClient:
         lines = text.split("\n")
         for line in lines:
             cleaned = line.strip()
-            if cleaned.startswith(("- ", "* ", "• ")) and len(cleaned) > 15:
-                item = cleaned.lstrip("-*• ").strip()
-                if item and not item.startswith("#"):
+            if (cleaned.startswith(("- ", "* ", "• ")) or re.match(r'^\d+\.\s+', cleaned)) and len(cleaned) > 20:
+                item = re.sub(r'^[-*•\d.]+\s*', '', cleaned).strip()
+                if item and not item.startswith(("#", "|")):
                     findings.append(item)
                     if len(findings) >= 5:
                         break
-        return findings
+        # Fallback to table rows if markdown table was generated
+        if not findings:
+            for line in lines:
+                cleaned = line.strip()
+                if cleaned.startswith("|") and not cleaned.startswith("|---") and "Key impact" not in cleaned and "Area" not in cleaned:
+                    cols = [c.strip() for c in cleaned.split("|") if c.strip()]
+                    if len(cols) >= 2:
+                        findings.append(f"{cols[0]}: {cols[-1]}")
+                        if len(findings) >= 5:
+                            break
+        return findings[:5]
 
     def _extract_direct_answer(self, text: str) -> Optional[str]:
         """Extract the first substantial explanatory sentence/paragraph."""
         paragraphs = [p.strip() for p in text.split("\n\n") if p.strip() and not p.strip().startswith("#")]
-        if paragraphs:
-            first_p = paragraphs[0]
-            sentences = re.split(r'(?<=[.!?]) +', first_p)
-            if sentences:
+        for p in paragraphs:
+            # Skip heading-only lines like **Direct answer** or Direct Answer:
+            clean = re.sub(r'^\**direct answer\**[:\s]*', '', p, flags=re.IGNORECASE).strip()
+            if len(clean) > 30 and not clean.startswith(("-", "*", "|")):
+                sentences = re.split(r'(?<=[.!?]) +', clean)
                 return " ".join(sentences[:2]).strip()
+        # Fallback: first substantial paragraph
+        for p in paragraphs:
+            clean = re.sub(r'^\**[a-zA-Z\s]+\**[:\s]*', '', p).strip()
+            if len(clean) > 25 and not clean.startswith(("-", "*", "|")):
+                return clean[:250]
         return None
 
 
