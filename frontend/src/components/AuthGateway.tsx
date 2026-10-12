@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   GraduationCap,
   Sparkles,
-  Database,
+  BookOpen,
   ShieldCheck,
   Lock,
   Mail,
@@ -86,16 +86,16 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
 
             <div className="auth-brand-body">
               <div className="auth-brand-headline">
-                State-of-the-Art Academic Workspace with Grounded AI Intelligence
+                Next-Generation Digital Learning & Academic Intelligence Platform
               </div>
 
               <div className="auth-brand-features">
                 <div className="auth-feature-row">
                   <div className="auth-feature-icon">
-                    <Database size={13} />
+                    <BookOpen size={13} />
                   </div>
                   <span>
-                    <strong>Polyglot Distributed Architecture:</strong> PostgreSQL transactions, pgvector high-dimensional embeddings, MongoDB announcements, and Redis.
+                    <strong>Curriculum & Course Hub:</strong> Access interactive lecture materials, course syllabi, readings, and downloadable study guides.
                   </span>
                 </div>
 
@@ -104,7 +104,7 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
                     <Sparkles size={13} />
                   </div>
                   <span>
-                    <strong>Curriculum-Grounded AI:</strong> Semantic question answering over DSA, OS, Embedded Systems, Japanese, and ML notes.
+                    <strong>Grounded AI Study Partner:</strong> Instant conceptual explanations and revision assistance directly synthesized from verified course notes.
                   </span>
                 </div>
 
@@ -113,7 +113,7 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
                     <ShieldCheck size={13} />
                   </div>
                   <span>
-                    <strong>Role-Based Access Control:</strong> Strict academic boundaries for Students, Faculty, and University Administrators.
+                    <strong>Assessments & Continuous Feedback:</strong> Automated quizzes, written coursework submissions, instant grading, and progress tracking.
                   </span>
                 </div>
               </div>
@@ -121,8 +121,8 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
           </div>
 
           <div className="auth-brand-footer">
-            <span>Spring 2026 Academic Term</span>
-            <span>Version 2.0.0 Production</span>
+            <span>Accredited Academic Institution Portal</span>
+            <span>Secure Student & Faculty Gateway</span>
           </div>
         </div>
 
