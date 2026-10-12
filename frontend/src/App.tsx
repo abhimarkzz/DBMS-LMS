@@ -269,6 +269,7 @@ export const App: React.FC = () => {
 
           {activeTab === 'assignments' && (
             <AssignmentsView
+              user={currentUser}
               assignments={assignments}
               courses={courses}
               activeAssignmentToOpen={activeAssignmentToOpen}
