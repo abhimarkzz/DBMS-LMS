@@ -734,7 +734,7 @@ class AISearchService:
             "direct_answer": direct_ans,
             "key_findings": key_findings[:5],
             "grounded": has_course or has_web,
-            "sources": legacy_sources if has_course else web_sources,
+            "sources": legacy_sources,
             "course_sources": course_sources,
             "web_sources": web_sources,
             "citations": combined_citations,
