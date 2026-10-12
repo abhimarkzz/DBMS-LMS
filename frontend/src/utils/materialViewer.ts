@@ -1,8 +1,6 @@
 // Shared Authenticated Material Viewer & Downloader Utility
 
-import { getAuthToken, removeAuthToken, removeStoredUser } from '../api';
-
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || '/api';
+import { getAuthToken, removeAuthToken, removeStoredUser, API_BASE } from '../api';
 
 export interface MaterialFetchResult {
   blob: Blob;

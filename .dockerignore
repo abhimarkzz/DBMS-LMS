@@ -1,0 +1,10 @@
+.git/
+.agents/
+venv/
+.venv/
+node_modules/
+.pytest_cache/
+backups/
+design-system/
+*.log
+.DS_Store

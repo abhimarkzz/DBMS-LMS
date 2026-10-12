@@ -203,11 +203,23 @@ npm run build
 
 ---
 
-## 9. Cloud Deployment (Normal Cloud Hosting)
+## 9. Deployment Options
 
-This application is architected without container orchestration dependencies. It can be deployed to standard cloud providers:
+### Option A: One-Command Docker Deployment (Full Stack)
+The repository includes production multi-stage Dockerfiles and an orchestration compose file configuring PostgreSQL (with pgvector), MongoDB, Redis, FastAPI, and Nginx:
 
-### Backend Deployment (Render, Railway, Fly.io, AWS EC2, Heroku)
+```bash
+# 1. Run automated pre-flight readiness check
+./scripts/check_readiness.sh
+
+# 2. Launch complete production stack in background
+docker compose up --build -d
+```
+- Frontend application: [http://localhost](http://localhost) (or [http://localhost:5173](http://localhost:5173))
+- Backend API & Swagger: [http://localhost:8000/docs](http://localhost:8000/docs)
+- Health check: [http://localhost:8000/health](http://localhost:8000/health)
+
+### Option B: Cloud PaaS Deployment (Render, Railway, Fly.io, AWS EC2, Heroku)
 1. **Set Build Command**:
    ```bash
    pip install -r backend/requirements.txt

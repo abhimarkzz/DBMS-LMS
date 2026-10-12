@@ -2,7 +2,14 @@
 
 import { downloadProtectedMaterial } from './utils/materialViewer';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || '/api';
+const rawBase: string = (import.meta as any).env?.VITE_API_BASE || (import.meta as any).env?.VITE_API_URL || '/api';
+export const API_BASE: string = (() => {
+  const base = rawBase.trim().replace(/\/+$/, '');
+  if (base.startsWith('http://') || base.startsWith('https://')) {
+    return base.endsWith('/api') ? base : `${base}/api`;
+  }
+  return base || '/api';
+})();
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('lms_token');
