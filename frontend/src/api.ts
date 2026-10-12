@@ -4,8 +4,14 @@ import { downloadProtectedMaterial } from './utils/materialViewer';
 
 export function getApiBase(): string {
   const custom = typeof window !== 'undefined' ? localStorage.getItem('lms_api_base') : null;
-  const rawBase: string = custom || (import.meta as any).env?.VITE_API_BASE || (import.meta as any).env?.VITE_API_URL || '/api';
-  const base = rawBase.trim().replace(/\/+$/, '');
+  let rawBase: string = (custom || (import.meta as any).env?.VITE_API_BASE || (import.meta as any).env?.VITE_API_URL || '/api').trim();
+
+  // If Render passed bare hostname (e.g. lms-backend.onrender.com), prepend https://
+  if (rawBase && !rawBase.startsWith('/') && !rawBase.startsWith('http://') && !rawBase.startsWith('https://')) {
+    rawBase = `https://${rawBase}`;
+  }
+
+  const base = rawBase.replace(/\/+$/, '');
   if (base.startsWith('http://') || base.startsWith('https://')) {
     return base.endsWith('/api') ? base : `${base}/api`;
   }
@@ -14,7 +20,11 @@ export function getApiBase(): string {
 
 export function setCustomApiBase(url: string): void {
   if (url) {
-    localStorage.setItem('lms_api_base', url.trim());
+    let clean = url.trim().replace(/\/+$/, '');
+    if (clean && !clean.startsWith('http://') && !clean.startsWith('https://') && !clean.startsWith('/')) {
+      clean = `https://${clean}`;
+    }
+    localStorage.setItem('lms_api_base', clean);
   } else {
     localStorage.removeItem('lms_api_base');
   }
@@ -58,27 +68,46 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${getApiBase()}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const url = `${getApiBase()}${endpoint}`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (netErr: any) {
+    throw new Error(`Unable to connect to backend server at ${getApiBase()}. The server may still be spinning up. Error: ${netErr.message || netErr}`);
+  }
+
+  const text = await res.text();
 
   if (!res.ok) {
     if (res.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
       removeAuthToken();
       removeStoredUser();
     }
-    let errorMsg = 'An unexpected error occurred';
-    try {
-      const errData = await res.json();
-      errorMsg = errData.detail || errData.error || errData.message || JSON.stringify(errData);
-    } catch {
-      errorMsg = `HTTP Error ${res.status}: ${res.statusText}`;
+    let errorMsg = `HTTP Error ${res.status}: ${res.statusText || 'Request failed'}`;
+    if (text && text.trim().length > 0) {
+      try {
+        const errData = JSON.parse(text);
+        errorMsg = errData.detail || errData.error || errData.message || JSON.stringify(errData);
+      } catch {
+        const cleanText = text.replace(/<[^>]*>?/gm, '').trim();
+        errorMsg = cleanText ? cleanText.slice(0, 200) : `HTTP Error ${res.status}`;
+      }
     }
     throw new Error(errorMsg);
   }
 
-  return res.json();
+  if (!text || text.trim().length === 0) {
+    return {} as T;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text as unknown as T;
+  }
 }
 
 export function uploadCourseMaterialsWithProgress(
