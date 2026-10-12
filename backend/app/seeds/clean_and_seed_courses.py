@@ -254,7 +254,50 @@ async def run_clean_and_seed():
         db.commit()
         logger.info(f"Removed {len(existing_courses)} old courses.")
 
-        # Ensure demo users exist
+        # Ensure demo roles and users exist
+        from app.services.auth_service import hash_password
+        roles = {}
+        for role_name, desc in [
+            ("ADMIN", "System administrator with complete platform privileges"),
+            ("TEACHER", "Course instructor with syllabus, grading, and material control"),
+            ("STUDENT", "Enrolled learner with assignment and AI search access")
+        ]:
+            r = db.query(Role).filter(Role.name == role_name).first()
+            if not r:
+                r = Role(name=role_name, description=desc)
+                db.add(r)
+                db.commit()
+                db.refresh(r)
+            roles[role_name] = r
+
+        default_password = hash_password("Password123!")
+        users_data = [
+            {"email": "admin@univ.edu", "name": "Dean Victoria Vance", "role": "ADMIN", "pw": hash_password("AdminPass123!")},
+            {"email": "prof.alan@univ.edu", "name": "Prof. Alan Turing", "role": "TEACHER", "pw": default_password},
+            {"email": "dr.sarah@univ.edu", "name": "Dr. Sarah Connor", "role": "TEACHER", "pw": default_password},
+            {"email": "alex@student.univ.edu", "name": "Alex Rivera", "role": "STUDENT", "pw": default_password},
+            {"email": "priya@student.univ.edu", "name": "Priya Sharma", "role": "STUDENT", "pw": default_password},
+            {"email": "marcus@student.univ.edu", "name": "Marcus Vance", "role": "STUDENT", "pw": default_password},
+            {"email": "elena@student.univ.edu", "name": "Elena Rostova", "role": "STUDENT", "pw": default_password},
+        ]
+        for ud in users_data:
+            u = db.query(User).filter(User.email == ud["email"]).first()
+            if not u:
+                u = User(
+                    email=ud["email"],
+                    password_hash=ud["pw"],
+                    full_name=ud["name"],
+                    role_id=roles[ud["role"]].id,
+                    is_active=True
+                )
+                db.add(u)
+                db.commit()
+                db.refresh(u)
+            elif ud["email"] in ["alex@student.univ.edu", "prof.alan@univ.edu", "admin@univ.edu"]:
+                # Ensure canonical passwords in case a test modified them
+                u.password_hash = ud["pw"]
+                db.commit()
+
         users = {u.email: u for u in db.query(User).all()}
         students = [users[e] for e in ["alex@student.univ.edu", "priya@student.univ.edu", "marcus@student.univ.edu", "elena@student.univ.edu"] if e in users]
 

@@ -367,7 +367,7 @@ def test_hybrid_research_web_failure_graceful_course_fallback(client, monkeypatc
         "/api/search",
         headers={"Authorization": f"Bearer {token}"},
         json={
-            "query": "How does Dijkstra algorithm find the shortest path in a weighted graph?",
+            "query": "Explain Dijkstra shortest path algorithm with priority queues and distance invariant",
             "mode": "HYBRID"
         }
     )

@@ -1,36 +1,53 @@
 import re
+import asyncio
 import pytest
-from app.database.postgres import SessionLocal
+from app.database.postgres import SessionLocal, init_db
+from app.seeds.seed_data import seed_all_data
 from app.models.sql_models import Course, User, NoteChunk, StudyMaterial, Assignment, Submission, Result, Enrollment
+from app.config import settings
 from pymongo import MongoClient
 
 CANONICAL_COURSES = {'CS201', 'CS301', 'CS305', 'LANG101', 'CS401'}
-CANONICAL_UIDS = {1, 2, 3, 4, 5, 6, 7}
+CANONICAL_EMAILS = {
+    'admin@univ.edu',
+    'prof.alan@univ.edu',
+    'dr.sarah@univ.edu',
+    'alex@student.univ.edu',
+    'priya@student.univ.edu',
+    'marcus@student.univ.edu',
+    'elena@student.univ.edu',
+}
+
 
 def cleanup_test_artifacts():
     # 1. Clean PostgreSQL
     db = SessionLocal()
+    canonical_uids = set()
     try:
-        # Test courses
+        # Non-canonical test courses
         test_courses = db.query(Course).filter(~Course.code.in_(CANONICAL_COURSES)).all()
         for tc in test_courses:
             db.delete(tc)
         
-        # Test users
-        test_users = db.query(User).filter(~User.id.in_(CANONICAL_UIDS)).all()
+        # Non-canonical test users
+        test_users = db.query(User).filter(~User.email.in_(CANONICAL_EMAILS)).all()
         for tu in test_users:
             db.delete(tu)
         
         db.commit()
-    except Exception as e:
+
+        # Capture valid canonical IDs for mongo cleanup
+        canon_users = db.query(User).filter(User.email.in_(CANONICAL_EMAILS)).all()
+        canonical_uids = {u.id for u in canon_users}
+    except Exception:
         db.rollback()
     finally:
         db.close()
 
     # 2. Clean MongoDB test notifications
     try:
-        client = MongoClient('mongodb://localhost:27017', serverSelectionTimeoutMS=2000)
-        mongo_db = client['lms_mongo_db']
+        client = MongoClient(settings.MONGODB_URL, serverSelectionTimeoutMS=2000)
+        mongo_db = client[settings.MONGODB_DB_NAME]
         test_patterns = [
             r'AUD_', r'PUB_', r'MCQ_', r'DESC_', r'QA\d+', r'SCR_', r'SEC_', r'CA4655',
             r'Term Project Milestone 1', r'Strict Score Test', r'Assignment in Course A',
@@ -46,7 +63,7 @@ def cleanup_test_artifacts():
         
         mongo_db.notifications.delete_many({
             '$or': [
-                {'user_id': {'$nin': list(CANONICAL_UIDS)}},
+                {'user_id': {'$nin': list(canonical_uids)}},
                 {'title': {'$regex': pattern}},
                 {'message': {'$regex': pattern}}
             ]
@@ -62,7 +79,21 @@ def cleanup_test_artifacts():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def auto_cleanup_test_artifacts():
+def setup_and_cleanup_test_database():
+    """Ensure database schema and canonical seed data exist, then cleanup test artifacts."""
+    # 1. Initialize schema and pgvector
+    try:
+        init_db()
+    except Exception:
+        pass
+
+    # 2. Ensure canonical users and courses exist
+    try:
+        with SessionLocal() as db:
+            asyncio.run(seed_all_data(db))
+    except Exception:
+        pass
+
     # Pre-test cleanup
     cleanup_test_artifacts()
     yield
