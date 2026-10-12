@@ -2,9 +2,21 @@
 
 import { downloadProtectedMaterial } from './utils/materialViewer';
 
+const DEFAULT_BACKEND = 'https://lms-backend-q67n.onrender.com';
+
 export function getApiBase(): string {
   const custom = typeof window !== 'undefined' ? localStorage.getItem('lms_api_base') : null;
-  let rawBase: string = (custom || (import.meta as any).env?.VITE_API_BASE || (import.meta as any).env?.VITE_API_URL || '/api').trim();
+  let rawBase: string = (
+    custom ||
+    (import.meta as any).env?.VITE_API_BASE ||
+    (import.meta as any).env?.VITE_API_URL ||
+    DEFAULT_BACKEND
+  ).trim();
+
+  // If set to relative /api on static hosting without local server, fallback to default cloud backend
+  if (rawBase === '/api' && typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+    rawBase = DEFAULT_BACKEND;
+  }
 
   // If Render passed bare hostname, prepend https://
   if (rawBase && !rawBase.startsWith('/') && !rawBase.startsWith('http://') && !rawBase.startsWith('https://')) {

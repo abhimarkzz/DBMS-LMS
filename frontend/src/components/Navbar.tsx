@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import {
   Bell,
-  Search,
   User as UserIcon,
   LogOut,
-  Sparkles,
   ChevronDown,
   Shield,
   GraduationCap,
@@ -54,37 +52,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="topbar">
-      {/* Left: Quick search field with clear purpose */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <button
-          className="navbar-search-btn"
-          onClick={() => onNavigate('courses')}
-          title="Quick Search: Find courses, syllabus modules, or study materials"
-        >
-          <Search size={15} color="#64748b" />
-          <span>Search courses, modules, or materials...</span>
-          <kbd className="search-kbd">⌘K</kbd>
-        </button>
-      </div>
+      {/* Left Spacer */}
+      <div style={{ display: 'flex', alignItems: 'center' }} />
 
-      {/* Right Controls: AI Smart Search Shortcut, Notifications, Profile */}
+      {/* Right Controls: Notifications, Profile */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {/* AI Smart Search Shortcut Button */}
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={() => onNavigate('ai-search')}
-          style={{
-            gap: '6px',
-            borderColor: '#bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#1e3a8a',
-            fontWeight: 600
-          }}
-          title="Launch AI Research Engine"
-        >
-          <Sparkles size={14} color="#2563eb" />
-          <span>AI Smart Search</span>
-        </button>
 
         {/* Notification Bell */}
         <div className="notification-bell-container">
