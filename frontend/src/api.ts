@@ -2,14 +2,25 @@
 
 import { downloadProtectedMaterial } from './utils/materialViewer';
 
-const rawBase: string = (import.meta as any).env?.VITE_API_BASE || (import.meta as any).env?.VITE_API_URL || '/api';
-export const API_BASE: string = (() => {
+export function getApiBase(): string {
+  const custom = typeof window !== 'undefined' ? localStorage.getItem('lms_api_base') : null;
+  const rawBase: string = custom || (import.meta as any).env?.VITE_API_BASE || (import.meta as any).env?.VITE_API_URL || '/api';
   const base = rawBase.trim().replace(/\/+$/, '');
   if (base.startsWith('http://') || base.startsWith('https://')) {
     return base.endsWith('/api') ? base : `${base}/api`;
   }
   return base || '/api';
-})();
+}
+
+export function setCustomApiBase(url: string): void {
+  if (url) {
+    localStorage.setItem('lms_api_base', url.trim());
+  } else {
+    localStorage.removeItem('lms_api_base');
+  }
+}
+
+export const API_BASE: string = getApiBase();
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('lms_token');
@@ -47,7 +58,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const res = await fetch(`${getApiBase()}${endpoint}`, {
     ...options,
     headers,
   });
