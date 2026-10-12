@@ -6,9 +6,15 @@ export function getApiBase(): string {
   const custom = typeof window !== 'undefined' ? localStorage.getItem('lms_api_base') : null;
   let rawBase: string = (custom || (import.meta as any).env?.VITE_API_BASE || (import.meta as any).env?.VITE_API_URL || '/api').trim();
 
-  // If Render passed bare hostname (e.g. lms-backend.onrender.com), prepend https://
+  // If Render passed bare hostname, prepend https://
   if (rawBase && !rawBase.startsWith('/') && !rawBase.startsWith('http://') && !rawBase.startsWith('https://')) {
     rawBase = `https://${rawBase}`;
+  }
+
+  // If host has no dot (e.g. https://lms-backend-q67n) and is not localhost, append .onrender.com
+  const match = rawBase.match(/^https?:\/\/([^/:]+)/);
+  if (match && match[1] && !match[1].includes('.') && match[1] !== 'localhost') {
+    rawBase = rawBase.replace(match[1], `${match[1]}.onrender.com`);
   }
 
   const base = rawBase.replace(/\/+$/, '');
@@ -23,6 +29,10 @@ export function setCustomApiBase(url: string): void {
     let clean = url.trim().replace(/\/+$/, '');
     if (clean && !clean.startsWith('http://') && !clean.startsWith('https://') && !clean.startsWith('/')) {
       clean = `https://${clean}`;
+    }
+    const match = clean.match(/^https?:\/\/([^/:]+)/);
+    if (match && match[1] && !match[1].includes('.') && match[1] !== 'localhost') {
+      clean = clean.replace(match[1], `${match[1]}.onrender.com`);
     }
     localStorage.setItem('lms_api_base', clean);
   } else {
