@@ -158,13 +158,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span>Assignments & Assessment</span>
             </button>
 
-            <button
-              className={`nav-item ${currentTab === 'results' ? 'active' : ''}`}
-              onClick={() => onSelectTab('results')}
-            >
-              <Award size={16} />
-              <span>Gradebook / Results</span>
-            </button>
 
             <button
               className={`nav-item ${currentTab === 'ai-search' ? 'active' : ''}`}

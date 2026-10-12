@@ -407,18 +407,59 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">
-              {user.role === 'ADMIN' ? 'Recent Administrative Activity' : 'Published Academic Results & Transcripts'}
+              {user.role === 'ADMIN' ? 'Recent Administrative Activity' : user.role === 'TEACHER' ? 'Active Course Assessments' : 'Published Academic Results & Transcripts'}
             </h3>
             <button
               className="btn btn-secondary btn-sm"
-              onClick={() => onNavigate(user.role === 'ADMIN' ? 'admin' : 'results')}
+              onClick={() => onNavigate(user.role === 'ADMIN' ? 'admin' : user.role === 'TEACHER' ? 'assignments' : 'results')}
             >
-              {user.role === 'ADMIN' ? 'View Logs' : 'Official Transcript'}
+              {user.role === 'ADMIN' ? 'View Logs' : user.role === 'TEACHER' ? 'View All Assessments' : 'Official Transcript'}
             </button>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {recentResultsList.length === 0 ? (
+            {user.role === 'TEACHER' ? (
+              assignments.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                  No assessments created yet. Click 'View All Assessments' to add one.
+                </div>
+              ) : (
+                assignments.slice(0, 4).map((a: any) => (
+                  <div
+                    key={a.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 14px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#1e3a8a', backgroundColor: '#eff6ff', padding: '1px 6px', borderRadius: '4px' }}>
+                          {a.assessment_type || 'DESCRIPTIVE'}
+                        </span>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                          {a.title}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '3px' }}>
+                        Max Score: {a.max_score} • Automated Grading
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => onNavigate('assignments')}
+                    >
+                      Manage
+                    </button>
+                  </div>
+                ))
+              )
+            ) : recentResultsList.length === 0 ? (
               <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
                 No published evaluations available yet.
               </div>
